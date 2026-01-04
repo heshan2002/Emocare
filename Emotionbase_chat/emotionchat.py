@@ -1,4 +1,4 @@
-# medi.py — EMOCARE FINAL (Strict RAG: Only answers from PDFs)
+# medi.py — EMOCARE FINAL (Only answers feelings, refuses other questions)
 
 import os
 import streamlit as st
@@ -48,25 +48,20 @@ def get_vectorstore():
     db = FAISS.load_local("vectorstore/db_faiss", embeddings, allow_dangerous_deserialization=True)
     return db
 
-# ============================= STRICT PROMPT (Only from PDFs) =============================
+# ============================= PROMPT =============================
 def get_prompt(emotion_name):
     return PromptTemplate.from_template(f"""
-You are Emocare – a very kind and caring elderly-care counsellor.
-
-You can ONLY answer using information from the research PDFs.
-You are NOT allowed to use any general or external knowledge.
+You are Emocare – a very kind elderly-care counsellor.
 
 The elder is feeling: "{emotion_name}"
 
-If the context below does not contain relevant information about this feeling, 
-you MUST say exactly: "No relevant information found in the research papers."
-
-If relevant information exists, give warm, short bullet-point advice in simple English.
+Using ONLY the research PDFs below, give warm, practical, and hopeful advice in short bullet points.
+Speak in simple English. Be loving.
 
 Context:
 {{context}}
 
-Answer:
+Answer with care:
 """)
 
 # ============================= SIDEBAR HISTORY =============================
@@ -109,59 +104,59 @@ user_input = st.chat_input("Or type your feeling here...")
 
 emotion = selected or (user_input.strip().lower() if user_input else None)
 
+# ============================= LIST OF VALID FEELINGS =============================
+valid_feelings = ["sad", "lonely", "anxious", "angry", "tired", "depressed", "hopeless", "happy", "calm", "surprise", "surprised"]
+
 # ============================= WHEN USER SENDS INPUT =============================
 if emotion:
-    user_msg = f"I am feeling **{emotion.capitalize()}**"
-    st.session_state.messages.append({"role": "user", "content": user_msg})
-    with st.chat_message("user"):
-        st.markdown(user_msg)
+    # Check if it's a valid feeling
+    if any(feeling in emotion for feeling in valid_feelings):
+        user_msg = f"I am feeling **{emotion.capitalize()}**"
+        st.session_state.messages.append({"role": "user", "content": user_msg})
+        with st.chat_message("user"):
+            st.markdown(user_msg)
 
-    with st.spinner("Searching caring advice from research papers..."):
-        db = get_vectorstore()
+        with st.spinner("Searching caring advice from research papers..."):
+            db = get_vectorstore()
 
-        # High threshold to avoid irrelevant results
-        retriever = db.as_retriever(
-            search_type="similarity_score_threshold",
-            search_kwargs={"k": 5, "score_threshold": 0.35}
-        )
+            prompt = get_prompt(emotion.capitalize())
 
-        prompt = get_prompt(emotion.capitalize())
+            qa_chain = RetrievalQA.from_chain_type(
+                llm=ChatGroq(model="llama-3.1-8b-instant", temperature=0.6, groq_api_key=os.environ["GROQ_API_KEY"]),
+                chain_type="stuff",
+                retriever=db.as_retriever(search_kwargs={"k": 5}),
+                return_source_documents=True,
+                chain_type_kwargs={"prompt": prompt}
+            )
 
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=ChatGroq(model="llama-3.1-8b-instant", temperature=0.6, groq_api_key=os.environ["GROQ_API_KEY"]),
-            chain_type="stuff",
-            retriever=retriever,
-            return_source_documents=True,
-            chain_type_kwargs={"prompt": prompt}
-        )
+            result = qa_chain.invoke({"query": emotion})
+            answer = result["result"]
 
-        result = qa_chain.invoke({"query": emotion})
-        answer = result["result"].strip()
-
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-        with st.chat_message("assistant"):
-            st.markdown(answer)
-
-            # Show sources only if relevant docs were found
-            if result["source_documents"]:
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+            with st.chat_message("assistant"):
+                st.markdown(answer)
                 with st.expander("Research Sources"):
                     for i, doc in enumerate(result["source_documents"], 1):
                         page = doc.metadata.get("page", "?")
                         filename = os.path.basename(doc.metadata.get("source", "Unknown.pdf"))
                         st.markdown(f"**Source {i}** – {filename} (Page {page})")
-            else:
-                st.info("No relevant information found in the research papers.")
 
-    # Save to history
-    time_str = datetime.datetime.now().strftime("%I:%M %p")
-    new_entry = {
-        "emotion": emotion.capitalize(),
-        "time": time_str,
-        "messages": st.session_state.messages.copy()
-    }
-    if not st.session_state.history or st.session_state.history[-1]["messages"] != new_entry["messages"]:
-        st.session_state.history.append(new_entry)
+        # Save to history
+        time_str = datetime.datetime.now().strftime("%I:%M %p")
+        new_entry = {
+            "emotion": emotion.capitalize(),
+            "time": time_str,
+            "messages": st.session_state.messages.copy()
+        }
+        if not st.session_state.history or st.session_state.history[-1]["messages"] != new_entry["messages"]:
+            st.session_state.history.append(new_entry)
+    else:
+        # Not a feeling → refuse politely
+        refusal_msg = "I'm sorry, I can only support you with your feelings. Please tell me how you are feeling today (e.g. sad, lonely, happy)."
+        st.session_state.messages.append({"role": "assistant", "content": refusal_msg})
+        with st.chat_message("assistant"):
+            st.markdown(refusal_msg)
 
 # ============================= FOOTER =============================
-st.markdown("---")
-st.caption("© 2025 Emocare – Final Year Project")
+#st.markdown("---")
+#st.caption("© 2025 Emocare – Final Year Project")
