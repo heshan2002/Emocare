@@ -3,35 +3,31 @@
 # ===============================
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.so
-*.egg-info/
-.eggs/
 
-# Virtual environments
+# ===============================
+# Virtual Environment
+# ===============================
 venv/
 env/
 .venv/
 
 # ===============================
-# Jupyter / Experiments
+# Jupyter
 # ===============================
 .ipynb_checkpoints/
-*.ipynb
 
 # ===============================
-# ML Models & Weights
+# ML Models (DO NOT COMMIT)
 # ===============================
 *.h5
 *.keras
-*.pt
 *.onnx
+*.pt
 *.pb
 *.tflite
 
 # ===============================
-# Datasets & Data Files
+# Datasets (DO NOT COMMIT)
 # ===============================
 *.csv
 *.tsv
@@ -41,70 +37,44 @@ env/
 *.npy
 *.npz
 *.pkl
-*.pickle
-*.wav
-*.mp3
-*.flac
-*.zip
-*.rar
 
 data/
+dataset/
 datasets/
 raw_data/
 processed_data/
 
 # ===============================
-# Logs & Temporary Files
+# Audio / Voice Data
 # ===============================
-*.log
-logs/
-temp/
-tmp/
-*.tmp
 *.wav
+*.mp3
+*.flac
 
 # ===============================
-# OS / System Files
+# Logs & Temporary
+# ===============================
+*.log
+temp.wav
+tmp/
+temp/
+
+# ===============================
+# OS Files
 # ===============================
 .DS_Store
 Thumbs.db
 desktop.ini
 
 # ===============================
-# IDE / Editor
+# IDE / Editors
 # ===============================
 .vscode/
 .idea/
-*.swp
-*.swo
 
 # ===============================
-# OpenCV / Media Output
-# ===============================
-*.avi
-*.mp4
-*.mov
-*.png
-*.jpg
-*.jpeg
-
-# ===============================
-# Environment & Secrets
+# Secrets
 # ===============================
 .env
-.env.*
-secrets/
-credentials/
 kaggle.json
 
-# ===============================
-# Build / Cache
-# ===============================
-build/
-dist/
-*.spec
-
-# ===============================
-# Misc
-# ===============================
-temp.wav
