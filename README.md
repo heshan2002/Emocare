@@ -11,7 +11,7 @@
 - RAG-based Chatbot  
 - Emotion-Adaptive Cognitive Game  
 
-![System Architecture](.system_diagram.jpeg)  
+![System Architecture](./system_diagram.jpeg)  
 *Figure: Overall System Architecture*  
 
 ---
