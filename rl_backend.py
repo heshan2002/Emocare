@@ -95,6 +95,9 @@ class DQNAgent:
 # Create agent instance
 agent = DQNAgent()
 
+# ✅ Load pretrained model
+agent.model.load_state_dict(torch.load("pretrained_agent.pth"))
+agent.model.eval()  # Important! Makes sure model is in inference mode
 # ==========================
 # DATA MODELS
 # ==========================
