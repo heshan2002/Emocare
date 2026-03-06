@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { EmotionProvider } from "./context/EmotionContext";
-import MoodEntry from "./pages/MoodEntry";
+
 
 import Home from "./pages/Home";
 import LoginGoogle from "./pages/LoginGoogle";
@@ -33,7 +33,7 @@ export default function App() {
 
           <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
           <Route path="/first-detection" element={<RequireAuth><FirstDetection /></RequireAuth>} />
-          <Route path="/mood" element={<MoodEntry />} />
+          
           <Route path="/mood" element={<RequireAuth><div style={{minHeight:"100vh",display:"grid",placeItems:"center",background:"#0b1220",color:"#fff"}}>Loading mood…</div></RequireAuth>} />
 
           <Route path="/mood/happy" element={<RequireAuth><Happy /></RequireAuth>} />

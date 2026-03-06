@@ -80,7 +80,7 @@ export default function FirstDetection() {
   const H = 320;
 
   function onContinue() {
-    navigate("/mood", { replace: true, state: { reloadOnce: true } });
+    navigate("/mood");
   }
 
   return (
