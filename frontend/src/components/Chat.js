@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import emocareLogo from '../emocare_logo.png'; // ඔයාගේ logo file එක
+import emocareLogo from '../emocare_logo.png';
 
 // Helper function to capitalize first letter
 const capitalize = (str) => {
@@ -1006,16 +1006,6 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
             }} 
           />
         </div>
-
-        <h3 style={{ 
-          marginBottom: '20px', 
-          color: '#2c3e50',
-          fontSize: '1.2rem',
-          borderBottom: '2px solid #4CAF50',
-          paddingBottom: '10px'
-        }}>
-          💬 Chat History
-        </h3>
         
         <div style={{ marginBottom: '20px' }}>
           <button 
