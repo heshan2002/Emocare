@@ -1,0 +1,70 @@
+# Core dependencies
+python-dotenv==1.1.1
+pydantic==2.11.7
+pydantic-settings==2.10.1
+pydantic[email]
+
+# LangChain family (correct hyphen names)
+langchain==0.3.26
+langchain-community==0.3.27
+langchain-core==0.3.68
+langchain-text-splitters==0.3.8
+langchain-huggingface==0.3.0
+langchain-groq==0.3.5
+langsmith==0.4.4
+
+# LLM & Embeddings
+groq==0.29.0
+sentence-transformers==5.0.0
+huggingface-hub==0.33.2
+transformers==4.53.1
+torch==2.7.1
+tokenizers==0.21.2
+safetensors==0.5.3
+
+# Vector DB & Document handling
+faiss-cpu==1.11.0
+pypdf==5.7.0
+
+# FastAPI & Server
+fastapi
+uvicorn
+starlette
+
+# Authentication & Security
+python-jose[cryptography]
+passlib[bcrypt]
+
+# MongoDB & Utilities
+pymongo
+numpy==2.3.1
+scipy==1.16.0
+scikit-learn==1.7.0
+
+# Others (keep most of your original pinned versions where useful)
+aiohttp==3.12.14
+aiosignal==1.4.0
+attrs==25.3.0
+certifi==2025.7.9
+charset-normalizer==3.4.2
+click==8.2.1
+dataclasses-json==0.6.7
+frozenlist==1.7.0
+httpx==0.28.1
+idna==3.10
+jinja2==3.1.6
+joblib==1.5.1
+markupsafe==3.0.2
+multidict==6.6.3
+packaging==24.2
+pyyaml==6.0.2
+requests==2.32.4
+tqdm==4.67.1
+typing-extensions==4.14.1
+urllib3==2.5.0
+yarl==1.20.1
+
+# Visualization / extras (optional but you had them)
+matplotlib
+pillow==11.3.0
+pandas==2.3.1
