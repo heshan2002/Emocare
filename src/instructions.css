@@ -162,3 +162,201 @@
   0%, 100% { box-shadow: 0 0 40px rgba(160,60,255,0.6), 0 8px 24px rgba(0,0,0,0.4); }
   50% { box-shadow: 0 0 70px rgba(247,47,123,0.8), 0 8px 32px rgba(0,0,0,0.5); }
 }
+
+/* ══════════════════════════════════════
+   CANDY ANIMATION BOARD (new)
+══════════════════════════════════════ */
+
+.anim-board {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 12px 10px 8px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 100px;
+}
+
+.anim-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(180,200,255,0.5);
+}
+
+.anim-row {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.anim-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.anim-cell {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* Selected state */
+.anim-selected {
+  border: 2px solid #facc15;
+  background: rgba(250,204,21,0.2);
+  transform: scale(1.15);
+  box-shadow: 0 0 10px rgba(250,204,21,0.5);
+}
+
+/* Swap animation */
+.anim-swapped {
+  animation: swapPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  border: 2px solid #a855f7;
+  background: rgba(168,85,247,0.2);
+}
+
+/* Match glow */
+.anim-matching {
+  border: 2px solid #f472b6;
+  background: rgba(244,114,182,0.25);
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(244,114,182,0.6);
+  animation: matchPulse 0.4s ease infinite alternate;
+}
+
+/* Cleared */
+.anim-cleared {
+  animation: clearPop 0.4s ease forwards;
+  opacity: 0.4;
+  transform: scale(0.6);
+}
+
+/* Combo glow */
+.anim-combo {
+  border: 2px solid #fb923c;
+  background: rgba(251,146,60,0.2);
+  box-shadow: 0 0 10px rgba(251,146,60,0.5);
+  animation: comboBounce 0.5s ease;
+}
+
+/* Hint flash */
+.anim-hint-cell {
+  border: 2px solid #facc15;
+  background: rgba(250,204,21,0.25);
+  box-shadow: 0 0 14px rgba(250,204,21,0.7);
+  animation: hintBounce 0.5s ease infinite alternate;
+}
+
+/* Blocker */
+.anim-blocker {
+  background: rgba(55,65,81,0.8) !important;
+  border: 2px solid #374151;
+  cursor: not-allowed;
+}
+
+/* Score text */
+.anim-score-display {
+  font-size: 28px;
+  font-weight: 900;
+  color: #a78bfa;
+  text-shadow: 0 0 12px rgba(167,139,250,0.6);
+  line-height: 1;
+}
+
+/* Progress bars */
+.anim-goal-bar, .anim-ai-bar {
+  width: 130px;
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.anim-goal-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.anim-ai-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s ease, background 0.5s ease;
+}
+
+/* Multiplier text */
+.anim-multiplier {
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  color: #fb923c !important;
+  text-shadow: 0 0 8px rgba(251,146,60,0.6);
+}
+
+/* Emotion box */
+.anim-emotion-box {
+  border: 2px solid;
+  border-radius: 10px;
+  padding: 6px 14px;
+  text-align: center;
+  transition: all 0.4s ease;
+}
+.anim-emotion-label {
+  font-size: 14px;
+  font-weight: 800;
+}
+.anim-emotion-grid {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+/* Bottom hint text */
+.anim-hint {
+  font-size: 11px;
+  color: rgba(200,220,255,0.7);
+  font-weight: 600;
+  text-align: center;
+  min-height: 16px;
+  transition: all 0.3s ease;
+}
+
+/* Keyframes */
+@keyframes swapPop {
+  0%   { transform: scale(1) rotate(0deg); }
+  50%  { transform: scale(1.25) rotate(8deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes matchPulse {
+  from { box-shadow: 0 0 8px rgba(244,114,182,0.4); }
+  to   { box-shadow: 0 0 20px rgba(244,114,182,0.9); }
+}
+
+@keyframes clearPop {
+  0%   { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.2; transform: scale(0.4) rotate(20deg); }
+}
+
+@keyframes comboBounce {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2) rotate(-5deg); }
+  100% { transform: scale(1); }
+}
+
+@keyframes hintBounce {
+  from { transform: scale(1); }
+  to   { transform: scale(1.12); }
+}

@@ -10,7 +10,7 @@ function Root() {
 
   if (phase === 'loading') return <LoadingPage onFinish={() => setPhase('instructions')} />;
   if (phase === 'instructions') return <InstructionsPage onPlay={() => setPhase('game')} />;
-  return <App />;
+  return <App onLogout={() => setPhase('loading')} />;
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

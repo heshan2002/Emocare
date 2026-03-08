@@ -10,6 +10,10 @@ import {
   Trophy,
   Target,
   Zap,
+  Clock,
+  AlertTriangle,
+  Coffee,
+  LogOut,
 } from "lucide-react";
 
 /* ================= SOUND SYSTEM ================= */
@@ -124,9 +128,6 @@ const createSoundSystem = () => {
     } catch (e) {}
   };
 
-  // ── Beautiful Candy Crush style background music ──
-  // Full looping track: melody + chords + bass + arpeggios + sparkle layer
-
   let musicLoopTimer = null;
   const allMusicNodes = [];
 
@@ -138,7 +139,6 @@ const createSoundSystem = () => {
     C3:130.81, G2:98.00, F2:87.31, A2:110.00,
   };
 
-  // Play a single note with envelope
   const playNote = (ctx, dest, freq, startTime, dur, vol, type = "sine", detune = 0) => {
     try {
       const osc = ctx.createOscillator();
@@ -160,7 +160,6 @@ const createSoundSystem = () => {
     } catch (e) {}
   };
 
-  // Glockenspiel-style sparkle note
   const playSparkle = (ctx, dest, freq, startTime) => {
     try {
       const osc = ctx.createOscillator();
@@ -176,7 +175,6 @@ const createSoundSystem = () => {
     } catch (e) {}
   };
 
-  // Soft pad chord
   const playPad = (ctx, dest, freqs, startTime, dur, vol = 0.045) => {
     freqs.forEach(f => {
       try {
@@ -195,66 +193,52 @@ const createSoundSystem = () => {
     });
   };
 
-  // Schedule one full loop of the song (8-bar, ~16s at 120bpm)
   const scheduleMusicLoop = (ctx, dest, loopStart) => {
     const BPM = 118;
-    const BEAT = 60 / BPM;          // ~0.508s per beat
-    const BAR  = BEAT * 4;          // ~2.03s per bar
+    const BEAT = 60 / BPM;
+    const BAR  = BEAT * 4;
     const t    = loopStart;
 
-    // ── MELODY (glockenspiel / sine, bright) ──
-    // Key of C major, 8 bars, playful candy-crush style
     const melody = [
-      // Bar 1 - C E G E
-      [0,       NOTE.C5, BEAT*0.9], [1,       NOTE.E5, BEAT*0.9],
-      [2,       NOTE.G5, BEAT*0.9], [3,       NOTE.E5, BEAT*0.9],
-      // Bar 2 - F A C A
-      [4,       NOTE.F5, BEAT*0.9], [5,       NOTE.A5, BEAT*0.9],
-      [6,       NOTE.C6, BEAT*1.4], [7.5,     NOTE.A5, BEAT*0.4],
-      // Bar 3 - G B D B
-      [8,       NOTE.G5, BEAT*0.5], [8.5,     NOTE.A5, BEAT*0.5],
-      [9,       NOTE.B5, BEAT*0.9], [10,      NOTE.D6, BEAT*1.8],
-      // Bar 4 - E D C rest
-      [12,      NOTE.E5, BEAT*0.5], [12.5,    NOTE.D5, BEAT*0.5],
-      [13,      NOTE.C5, BEAT*1.8],
-      // Bar 5 - A G F E
-      [16,      NOTE.A5, BEAT*0.9], [17,      NOTE.G5, BEAT*0.9],
-      [18,      NOTE.F5, BEAT*0.9], [19,      NOTE.E5, BEAT*0.9],
-      // Bar 6 - D E F G (ascending run)
-      [20,      NOTE.D5, BEAT*0.5], [20.5,    NOTE.E5, BEAT*0.5],
-      [21,      NOTE.F5, BEAT*0.5], [21.5,    NOTE.G5, BEAT*0.5],
-      [22,      NOTE.A5, BEAT*1.8],
-      // Bar 7 - turnaround
-      [24,      NOTE.G5, BEAT*0.5], [24.5,    NOTE.E5, BEAT*0.5],
-      [25,      NOTE.C5, BEAT*0.5], [25.5,    NOTE.E5, BEAT*0.5],
-      [26,      NOTE.G5, BEAT*0.9], [27,      NOTE.A5, BEAT*0.9],
-      // Bar 8 - resolve
-      [28,      NOTE.G5, BEAT*0.5], [28.5,    NOTE.E5, BEAT*0.5],
-      [29,      NOTE.C5, BEAT*0.5], [29.5,    NOTE.D5, BEAT*0.5],
-      [30,      NOTE.C5, BEAT*1.9],
+      [0, NOTE.C5, BEAT*0.9], [1, NOTE.E5, BEAT*0.9],
+      [2, NOTE.G5, BEAT*0.9], [3, NOTE.E5, BEAT*0.9],
+      [4, NOTE.F5, BEAT*0.9], [5, NOTE.A5, BEAT*0.9],
+      [6, NOTE.C6, BEAT*1.4], [7.5, NOTE.A5, BEAT*0.4],
+      [8, NOTE.G5, BEAT*0.5], [8.5, NOTE.A5, BEAT*0.5],
+      [9, NOTE.B5, BEAT*0.9], [10, NOTE.D6, BEAT*1.8],
+      [12, NOTE.E5, BEAT*0.5], [12.5, NOTE.D5, BEAT*0.5],
+      [13, NOTE.C5, BEAT*1.8],
+      [16, NOTE.A5, BEAT*0.9], [17, NOTE.G5, BEAT*0.9],
+      [18, NOTE.F5, BEAT*0.9], [19, NOTE.E5, BEAT*0.9],
+      [20, NOTE.D5, BEAT*0.5], [20.5, NOTE.E5, BEAT*0.5],
+      [21, NOTE.F5, BEAT*0.5], [21.5, NOTE.G5, BEAT*0.5],
+      [22, NOTE.A5, BEAT*1.8],
+      [24, NOTE.G5, BEAT*0.5], [24.5, NOTE.E5, BEAT*0.5],
+      [25, NOTE.C5, BEAT*0.5], [25.5, NOTE.E5, BEAT*0.5],
+      [26, NOTE.G5, BEAT*0.9], [27, NOTE.A5, BEAT*0.9],
+      [28, NOTE.G5, BEAT*0.5], [28.5, NOTE.E5, BEAT*0.5],
+      [29, NOTE.C5, BEAT*0.5], [29.5, NOTE.D5, BEAT*0.5],
+      [30, NOTE.C5, BEAT*1.9],
     ];
     melody.forEach(([beat, freq, dur]) => {
       playNote(ctx, dest, freq, t + beat * BEAT, dur, 0.18, "sine");
-      // Sparkle overtone an octave up, softer
       playSparkle(ctx, dest, freq * 2, t + beat * BEAT);
     });
 
-    // ── COUNTER-MELODY (triangle, warmer) ──
     const counter = [
       [0, NOTE.E4, BEAT*1.8], [2, NOTE.G4, BEAT*1.8],
       [4, NOTE.A4, BEAT*1.8], [6, NOTE.C5, BEAT*1.8],
-      [8, NOTE.B4, BEAT*1.8], [10,NOTE.G4, BEAT*1.8],
-      [12,NOTE.A4, BEAT*1.8], [14,NOTE.E4, BEAT*1.8],
-      [16,NOTE.F4, BEAT*1.8], [18,NOTE.A4, BEAT*1.8],
-      [20,NOTE.G4, BEAT*1.8], [22,NOTE.E4, BEAT*1.8],
-      [24,NOTE.D4, BEAT*1.8], [26,NOTE.F4, BEAT*1.8],
-      [28,NOTE.E4, BEAT*3.5],
+      [8, NOTE.B4, BEAT*1.8], [10, NOTE.G4, BEAT*1.8],
+      [12, NOTE.A4, BEAT*1.8], [14, NOTE.E4, BEAT*1.8],
+      [16, NOTE.F4, BEAT*1.8], [18, NOTE.A4, BEAT*1.8],
+      [20, NOTE.G4, BEAT*1.8], [22, NOTE.E4, BEAT*1.8],
+      [24, NOTE.D4, BEAT*1.8], [26, NOTE.F4, BEAT*1.8],
+      [28, NOTE.E4, BEAT*3.5],
     ];
     counter.forEach(([beat, freq, dur]) => {
       playNote(ctx, dest, freq, t + beat * BEAT, dur, 0.07, "triangle");
     });
 
-    // ── PADS / CHORDS (soft sine pads every bar) ──
     const chords = [
       [0,  [NOTE.C3, NOTE.E4, NOTE.G4]],
       [4,  [NOTE.F2, NOTE.A3, NOTE.C4]],
@@ -269,18 +253,16 @@ const createSoundSystem = () => {
       playPad(ctx, dest, freqs, t + beat * BEAT, BAR * 1.02, 0.04);
     });
 
-    // ── BASS (triangle, punchy) ──
     const bass = [
       [0, NOTE.C3], [2, NOTE.G3], [4, NOTE.F2], [6, NOTE.A2],
-      [8, NOTE.G2], [10,NOTE.B3], [12,NOTE.A2], [14,NOTE.E4],
-      [16,NOTE.F2], [18,NOTE.C3], [20,NOTE.G2], [22,NOTE.D4],
-      [24,NOTE.C3], [26,NOTE.G3], [28,NOTE.C3], [30,NOTE.G3],
+      [8, NOTE.G2], [10, NOTE.B3], [12, NOTE.A2], [14, NOTE.E4],
+      [16, NOTE.F2], [18, NOTE.C3], [20, NOTE.G2], [22, NOTE.D4],
+      [24, NOTE.C3], [26, NOTE.G3], [28, NOTE.C3], [30, NOTE.G3],
     ];
     bass.forEach(([beat, freq]) => {
       playNote(ctx, dest, freq, t + beat * BEAT, BEAT * 0.75, 0.13, "triangle");
     });
 
-    // ── ARPEGGIO (high, fast, glittery) ──
     const arpPatterns = [
       [NOTE.C5, NOTE.E5, NOTE.G5, NOTE.C6],
       [NOTE.F5, NOTE.A5, NOTE.C6, NOTE.F5],
@@ -297,7 +279,6 @@ const createSoundSystem = () => {
       });
     });
 
-    // ── KICK-STYLE BASS PULSE (every beat, subtle) ──
     for (let beat = 0; beat < 32; beat++) {
       try {
         const kickTime = t + beat * BEAT;
@@ -319,12 +300,8 @@ const createSoundSystem = () => {
     if (isBgPlaying) return;
     try {
       const ctx = getCtx();
-
-      // Master chain: compressor → reverb → gain → output
       bgGainNode = ctx.createGain();
       bgGainNode.gain.setValueAtTime(0.72, ctx.currentTime);
-
-      // Simple reverb via convolver
       const reverbLen = ctx.sampleRate * 1.5;
       const reverbBuf = ctx.createBuffer(2, reverbLen, ctx.sampleRate);
       for (let ch = 0; ch < 2; ch++) {
@@ -333,7 +310,6 @@ const createSoundSystem = () => {
       }
       const convolver = ctx.createConvolver();
       convolver.buffer = reverbBuf;
-
       const dryGain  = ctx.createGain(); dryGain.gain.value  = 0.75;
       const wetGain  = ctx.createGain(); wetGain.gain.value  = 0.28;
       const compressor = ctx.createDynamicsCompressor();
@@ -342,25 +318,20 @@ const createSoundSystem = () => {
       compressor.ratio.value = 4;
       compressor.attack.value = 0.003;
       compressor.release.value = 0.25;
-
       bgGainNode.connect(dryGain);
       bgGainNode.connect(convolver);
       convolver.connect(wetGain);
       dryGain.connect(compressor);
       wetGain.connect(compressor);
       compressor.connect(ctx.destination);
-
       isBgPlaying = true;
       bgOscillators = [{ osc: { stop: () => {} }, lfo: null }];
-
-      const LOOP_DUR = (60 / 118) * 32; // 32 beats at 118bpm ≈ 16.27s
-
+      const LOOP_DUR = (60 / 118) * 32;
       const loop = (startTime) => {
         if (!isBgPlaying) return;
         scheduleMusicLoop(ctx, bgGainNode, startTime);
         musicLoopTimer = setTimeout(() => loop(startTime + LOOP_DUR), (LOOP_DUR - 0.1) * 1000);
       };
-
       loop(ctx.currentTime + 0.05);
     } catch (e) { console.error("Music error:", e); }
   };
@@ -389,172 +360,91 @@ const soundSystem = createSoundSystem();
 
 /* ================= CONFIG ================= */
 const BASE_CANDY_TYPES = 5;
-
-// Keep your existing 5 colors/symbols, and extend for HARD mode (6th/7th candy)
 const COLORS = [
-  "#FF6B6B",
-  "#4ECDC4",
-  "#45B7D1",
-  "#FFA07A",
-  "#98D8C8",
-  "#B388FF", // extra for hard (6th)
-  "#FFB74D", // extra (if you ever go 7)
+  "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8", "#B388FF", "#FFB74D",
 ];
-
 const CANDY_SYMBOLS = ["🔴", "🔵", "🟢", "🟡", "🟣", "🟠", "🟤"];
-
-// ✅ Backend base URL (matches your backend)
 const API_URL = "http://localhost:8000/api";
-
-// Base values (your existing)
-const TIME_LIMIT_SECONDS = 120; // 2 minutes
+const TIME_LIMIT_SECONDS = 120;
 const WIN_SCORE = 800;
-
-// Special cell codes
 const EMPTY = -1;
 const BLOCKER = -2;
 
+// ✅ Safety constants (mirrored from backend)
+const MAX_SESSION_MINUTES = 45;
+const PAUSE_SUGGEST_MINUTES = 25;
+
 const getBoardSizeByEmotion = (emotion) => {
   switch (emotion) {
-    case "happy":
-      return 9;
-    case "sad":
-      return 7;
-    case "angry":
-      return 6;
-    default:
-      return 8;
+    case "happy": return 9;
+    case "sad": return 7;
+    case "angry": return 6;
+    default: return 8;
   }
 };
 
-/* ================= DIFFICULTY SETTINGS ================= */
 const getDifficultySettings = (difficulty) => {
   switch (difficulty) {
     case "hard":
-      return {
-        label: "Hard",
-        candyTypes: 6,
-        timeLimit: 90,
-        startMoves: 26,
-        blockers: 8,
-        invalidPenaltySeconds: 2,
-      };
+      return { label: "Hard", candyTypes: 6, timeLimit: 90, startMoves: 26, blockers: 8, invalidPenaltySeconds: 2 };
     case "medium":
-      return {
-        label: "Medium",
-        candyTypes: 5,
-        timeLimit: 110,
-        startMoves: 28,
-        blockers: 4,
-        invalidPenaltySeconds: 1,
-      };
+      return { label: "Medium", candyTypes: 5, timeLimit: 110, startMoves: 28, blockers: 4, invalidPenaltySeconds: 1 };
     default:
-      return {
-        label: "Easy",
-        candyTypes: 5,
-        timeLimit: TIME_LIMIT_SECONDS,
-        startMoves: 30,
-        blockers: 0,
-        invalidPenaltySeconds: 0,
-      };
+      return { label: "Easy", candyTypes: 5, timeLimit: TIME_LIMIT_SECONDS, startMoves: 30, blockers: 0, invalidPenaltySeconds: 0 };
   }
 };
 
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
-const computeDifficultyScore = ({
-  validMoves,
-  invalidMoves,
-  score,
-  timePlayedSec,
-  maxMovesWindow,
-}) => {
+const computeDifficultyScore = ({ validMoves, invalidMoves, score, timePlayedSec, maxMovesWindow }) => {
   const total = Math.max(1, validMoves + invalidMoves);
   const invalidRate = invalidMoves / total;
-
-  // Speed: points per second, normalized
   const pps = score / Math.max(1, timePlayedSec);
-  const speedScore = clamp01(pps / 6); // tune
-
-  // Accuracy: lower invalid rate -> higher
+  const speedScore = clamp01(pps / 6);
   const accuracyScore = clamp01(1 - invalidRate * 1.8);
-
-  // Activity: number of valid moves in window
   const activityScore = clamp01(validMoves / Math.max(1, maxMovesWindow));
-
   return clamp01(0.45 * speedScore + 0.40 * accuracyScore + 0.15 * activityScore);
 };
 
 const randInt = (n) => Math.floor(Math.random() * n);
 
-/** Adjust the current board to match NEW settings:
- * - If candyTypes decreases, remap any candy >= candyTypes
- * - If blockers target changes, add/remove blockers to hit target
- */
 const adjustBoardForSettings = (prevBoard, newSettings) => {
   const N = prevBoard.length;
   const b = prevBoard.map((row) => row.slice());
-
-  // 1) Remap candies if candyTypes decreased (or just to be safe)
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
-      if (b[r][c] >= 0 && b[r][c] >= newSettings.candyTypes) {
+  for (let r = 0; r < N; r++)
+    for (let c = 0; c < N; c++)
+      if (b[r][c] >= 0 && b[r][c] >= newSettings.candyTypes)
         b[r][c] = randInt(newSettings.candyTypes);
-      }
-    }
-  }
-
-  // 2) Adjust blockers count to match target
   const blockersNow = [];
   const candyCells = [];
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
-      if (b[r][c] === BLOCKER) blockersNow.push([r, c]);
-      else if (b[r][c] >= 0) candyCells.push([r, c]);
-    }
-  }
-
+  for (let r = 0; r < N; r++)
+    for (let c = 0; c < N; c++)
+      b[r][c] === BLOCKER ? blockersNow.push([r, c]) : b[r][c] >= 0 && candyCells.push([r, c]);
   const target = Math.max(0, Math.min(newSettings.blockers, Math.floor(N * N * 0.18)));
-
-  // Remove extra blockers (make game easier)
   if (blockersNow.length > target) {
-    // shuffle blockers
     for (let i = blockersNow.length - 1; i > 0; i--) {
       const j = randInt(i + 1);
       [blockersNow[i], blockersNow[j]] = [blockersNow[j], blockersNow[i]];
     }
-    const toRemove = blockersNow.length - target;
-    for (let k = 0; k < toRemove; k++) {
-      const [r, c] = blockersNow[k];
-      b[r][c] = randInt(newSettings.candyTypes);
-    }
+    for (let k = 0; k < blockersNow.length - target; k++)
+      b[blockersNow[k][0]][blockersNow[k][1]] = randInt(newSettings.candyTypes);
   }
-
-  // Add missing blockers (make game harder)
   if (blockersNow.length < target) {
-    // recompute candidates after any removals
     const candidates = [];
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
+    for (let r = 0; r < N; r++)
+      for (let c = 0; c < N; c++)
         if (b[r][c] >= 0) candidates.push([r, c]);
-      }
-    }
-    // shuffle candidates
     for (let i = candidates.length - 1; i > 0; i--) {
       const j = randInt(i + 1);
       [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
     }
-    const need = Math.min(target - blockersNow.length, candidates.length);
-    for (let k = 0; k < need; k++) {
-      const [r, c] = candidates[k];
-      b[r][c] = BLOCKER;
-    }
+    for (let k = 0; k < Math.min(target - blockersNow.length, candidates.length); k++)
+      b[candidates[k][0]][candidates[k][1]] = BLOCKER;
   }
-
   return b;
 };
 
-export default function EmotionRLCandyCrush() {
+export default function EmotionRLCandyCrush({ onLogout }) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [bgMusicEnabled, setBgMusicEnabled] = useState(true);
   const soundEnabledRef = useRef(true);
@@ -571,42 +461,66 @@ export default function EmotionRLCandyCrush() {
   const [selected, setSelected] = useState(null);
   const [score, setScore] = useState(0);
   const scoreRef = useRef(0);
-
   const [moves, setMoves] = useState(30);
   const [gameOver, setGameOver] = useState(false);
-
-  // ✅ NEW: track win state for UI
   const [didWin, setDidWin] = useState(false);
-
-  // ✅ Hint highlights TWO cells to swap
   const [hintSwap, setHintSwap] = useState(null);
-  // hintSwap = { a:{r,c}, b:{r,c} }
-
   const [rewardPops, setRewardPops] = useState([]);
   const [combo, setCombo] = useState(0);
   const [highScore, setHighScore] = useState(0);
-
   const gameStartTime = useRef(Date.now());
-
-  // ✅ REQUIRED for time limit UI
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT_SECONDS);
-
-  // ✅ Prevent double endGame calls
   const gameEndedRef = useRef(false);
-
-  // ✅ store the latest decisionId from backend
   const lastDecisionIdRef = useRef(null);
-
-  // ✅ memory box: prevents duplicate mid-game decision calls (one per move)
   const lastFeedbackMoveRef = useRef(null);
 
+  // ✅ NEW: Session & safety tracking
+  const sessionStartTime = useRef(Date.now()); // persists across games in same session
+  const [sessionDurationSec, setSessionDurationSec] = useState(0);
+  const [consecutiveLosses, setConsecutiveLosses] = useState(0);
+  const consecutiveLossesRef = useRef(0);
+  const [hintsShown, setHintsShown] = useState(0);
+  const [hintsAccepted, setHintsAccepted] = useState(0);
+  const hintsShownRef = useRef(0);
+  const hintsAcceptedRef = useRef(0);
+  const lastMoveTimeRef = useRef(Date.now());
+  const moveHesitationSumRef = useRef(0);
+  const moveCountRef = useRef(0);
+
+  // ✅ NEW: Safety overlay states
+  const [showPauseSuggest, setShowPauseSuggest] = useState(false);
+  const [showSessionWarning, setShowSessionWarning] = useState(false);
+  const [simplifyBoard, setSimplifyBoard] = useState(false); // SIMPLIFY_BOARD action active
+
+  // ✅ NEW: Emotion sequence tracking for research logging
+  const emotionSequenceRef = useRef([]);
+  const actionsReceivedRef = useRef([]);
+
+  // ✅ NEW: Player ID (stable across session)
+  const playerIdRef = useRef(`player_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+
+  // ✅ NEW: hint accept rate computation
+  const getHintAcceptRate = () => {
+    const shown = hintsShownRef.current;
+    const accepted = hintsAcceptedRef.current;
+    return shown === 0 ? 0.5 : accepted / shown;
+  };
+
+  const getAvgHesitation = () => {
+    const count = moveCountRef.current;
+    return count === 0 ? 2.0 : moveHesitationSumRef.current / count;
+  };
+
+  const getSessionDuration = () => {
+    return Math.floor((Date.now() - sessionStartTime.current) / 1000);
+  };
+
   /* ================== Behaviour Tracking (DDA) ================== */
-  const MAX_WINDOW = 12; // look at last N swap attempts
-  const [difficulty, setDifficulty] = useState("easy"); // easy | medium | hard
+  const MAX_WINDOW = 12;
+  const [difficulty, setDifficulty] = useState("easy");
   const difficultyRef = useRef("easy");
   const settingsRef = useRef(getDifficultySettings("easy"));
-
-  const moveWindowRef = useRef([]); // array of booleans: true=valid, false=invalid
+  const moveWindowRef = useRef([]);
   const resetBehaviourTracking = useCallback(() => {
     moveWindowRef.current = [];
   }, []);
@@ -614,12 +528,9 @@ export default function EmotionRLCandyCrush() {
   /* ================== WIN REWARD SYSTEM ================== */
   const [coins, setCoins] = useState(0);
   const [winReward, setWinReward] = useState(null);
-  // winReward shown on modal: { coinsGained, bonusStartTimeSec, bonusHint, difficulty, emotion }
+  const pendingRewardRef = useRef(null);
+  const winRewardGivenRef = useRef(false);
 
-  const pendingRewardRef = useRef(null); // reward applied in the NEXT game start
-  const winRewardGivenRef = useRef(false); // avoids double-give
-
-  // Load/save coins (simple persistence)
   useEffect(() => {
     const saved = localStorage.getItem("cc_coins");
     if (saved != null) setCoins(Number(saved) || 0);
@@ -629,53 +540,30 @@ export default function EmotionRLCandyCrush() {
   }, [coins]);
 
   const giveWinReward = useCallback(() => {
-    if (winRewardGivenRef.current) return; // already rewarded this game
+    if (winRewardGivenRef.current) return;
     winRewardGivenRef.current = true;
-
     const d = difficultyRef.current;
-
-    // ✅ Reward amounts (you can change these)
     const coinsGained = d === "hard" ? 60 : d === "medium" ? 35 : 20;
     const bonusStartTimeSec = d === "hard" ? 10 : d === "medium" ? 7 : 5;
-    const bonusHint = d !== "easy"; // give 1 free hint next game on medium/hard
-
-    const reward = {
-      coinsGained,
-      bonusStartTimeSec,
-      bonusHint,
-      difficulty: d,
-      emotion,
-      at: Date.now(),
-    };
-
-    // Add coins now
+    const bonusHint = d !== "easy";
+    const reward = { coinsGained, bonusStartTimeSec, bonusHint, difficulty: d, emotion, at: Date.now() };
     setCoins((c) => c + coinsGained);
-
-    // Show reward in win modal
     setWinReward(reward);
-
-    // Store for next game to apply start bonuses
     pendingRewardRef.current = reward;
   }, [emotion]);
 
-  // Generate board with candyTypes + optional blockers
   const generateBoard = (size, candyTypes, blockersCount = 0) => {
     const b = Array.from({ length: size }, () =>
       Array.from({ length: size }, () => Math.floor(Math.random() * candyTypes))
     );
-
-    // Place blockers randomly
     const totalCells = size * size;
     const count = Math.min(blockersCount, Math.floor(totalCells * 0.18));
     const used = new Set();
-
     while (used.size < count) {
       const idx = Math.floor(Math.random() * totalCells);
       if (used.has(idx)) continue;
       used.add(idx);
-      const r = Math.floor(idx / size);
-      const c = idx % size;
-      b[r][c] = BLOCKER;
+      b[Math.floor(idx / size)][idx % size] = BLOCKER;
     }
     return b;
   };
@@ -687,13 +575,7 @@ export default function EmotionRLCandyCrush() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        const txt = await res.text();
-        console.error("Backend error:", endpoint, txt);
-        return null;
-      }
-
+      if (!res.ok) { console.error("Backend error:", endpoint, await res.text()); return null; }
       return await res.json();
     } catch (e) {
       console.error("Backend call failed:", endpoint, e);
@@ -701,179 +583,142 @@ export default function EmotionRLCandyCrush() {
     }
   }, []);
 
-  // ✅ Find matches (uses boardSize) — ignore negatives properly
   const findMatches = (b) => {
     const matches = [];
-    for (let r = 0; r < boardSize; r++) {
+    for (let r = 0; r < boardSize; r++)
       for (let c = 0; c < boardSize - 2; c++) {
         const v = b[r][c];
-        if (v >= 0 && v === b[r][c + 1] && v === b[r][c + 2]) {
+        if (v >= 0 && v === b[r][c + 1] && v === b[r][c + 2])
           matches.push([r, c], [r, c + 1], [r, c + 2]);
-        }
       }
-    }
-    for (let r = 0; r < boardSize - 2; r++) {
+    for (let r = 0; r < boardSize - 2; r++)
       for (let c = 0; c < boardSize; c++) {
         const v = b[r][c];
-        if (v >= 0 && v === b[r + 1][c] && v === b[r + 2][c]) {
+        if (v >= 0 && v === b[r + 1][c] && v === b[r + 2][c])
           matches.push([r, c], [r + 1, c], [r + 2, c]);
-        }
       }
-    }
     return matches;
   };
 
-  // ✅ Correct hint: find an ACTUAL swap that creates a match (blockers cannot be swapped)
   const findHintSwap = useCallback((b) => {
     const N = b.length;
-
     const findMatchesLocal = (grid) => {
       const matches = [];
-      for (let r = 0; r < N; r++) {
+      for (let r = 0; r < N; r++)
         for (let c = 0; c < N - 2; c++) {
           const v = grid[r][c];
-          if (v >= 0 && v === grid[r][c + 1] && v === grid[r][c + 2]) {
+          if (v >= 0 && v === grid[r][c + 1] && v === grid[r][c + 2])
             matches.push([r, c], [r, c + 1], [r, c + 2]);
-          }
         }
-      }
-      for (let r = 0; r < N - 2; r++) {
+      for (let r = 0; r < N - 2; r++)
         for (let c = 0; c < N; c++) {
           const v = grid[r][c];
-          if (v >= 0 && v === grid[r + 1][c] && v === grid[r + 2][c]) {
+          if (v >= 0 && v === grid[r + 1][c] && v === grid[r + 2][c])
             matches.push([r, c], [r + 1, c], [r + 2, c]);
-          }
         }
-      }
       return matches;
     };
-
     const clone = (x) => x.map((row) => [...row]);
-
     const trySwap = (r1, c1, r2, c2) => {
       if (b[r1][c1] === BLOCKER || b[r2][c2] === BLOCKER) return false;
       const t = clone(b);
       [t[r1][c1], t[r2][c2]] = [t[r2][c2], t[r1][c1]];
       return findMatchesLocal(t).length > 0;
     };
-
-    for (let r = 0; r < N; r++) {
+    for (let r = 0; r < N; r++)
       for (let c = 0; c < N; c++) {
-        if (c + 1 < N && trySwap(r, c, r, c + 1)) {
-          return { a: { r, c }, b: { r, c: c + 1 } };
-        }
-        if (r + 1 < N && trySwap(r, c, r + 1, c)) {
-          return { a: { r, c }, b: { r: r + 1, c } };
-        }
+        if (c + 1 < N && trySwap(r, c, r, c + 1)) return { a: { r, c }, b: { r, c: c + 1 } };
+        if (r + 1 < N && trySwap(r, c, r + 1, c)) return { a: { r, c }, b: { r: r + 1, c } };
       }
-    }
     return null;
   }, []);
 
   const applyMatches = (b, candyTypes) => {
     const matches = findMatches(b);
-    if (!matches.length) {
-      setCombo(0);
-      return false;
-    }
-
+    if (!matches.length) { setCombo(0); return false; }
     const comboMultiplier = 1 + combo * 0.5;
     const points = matches.length * 10 * comboMultiplier;
-
     matches.forEach(([r, c]) => {
       if (b[r][c] >= 0) {
         const id = Date.now() + Math.random();
-        setRewardPops((p) => [
-          ...p,
-          { id, r, c, value: Math.round(points / matches.length) },
-        ]);
+        setRewardPops((p) => [...p, { id, r, c, value: Math.round(points / matches.length) }]);
         setTimeout(() => setRewardPops((p) => p.filter((x) => x.id !== id)), 1200);
         b[r][c] = EMPTY;
       }
     });
-
     setScore((s) => {
       const newScore = s + points;
       scoreRef.current = newScore;
       setHighScore((h) => Math.max(h, newScore));
       return newScore;
     });
-
     setCombo((c) => c + 1);
-
-    // Drop candies, blockers stay fixed and block falling through them
     for (let c = 0; c < boardSize; c++) {
       let r = boardSize - 1;
       while (r >= 0) {
-        if (b[r][c] === BLOCKER) {
-          r--;
-          continue;
-        }
-
-        let segBottom = r;
-        let segTop = r;
+        if (b[r][c] === BLOCKER) { r--; continue; }
+        let segBottom = r, segTop = r;
         while (segTop >= 0 && b[segTop][c] !== BLOCKER) segTop--;
         segTop++;
-
         const candies = [];
-        for (let rr = segBottom; rr >= segTop; rr--) {
+        for (let rr = segBottom; rr >= segTop; rr--)
           if (b[rr][c] >= 0) candies.push(b[rr][c]);
-        }
-
         let write = segBottom;
-        for (let i = 0; i < candies.length; i++) {
-          b[write][c] = candies[i];
-          write--;
-        }
-        while (write >= segTop) {
-          b[write][c] = Math.floor(Math.random() * candyTypes);
-          write--;
-        }
-
+        for (let i = 0; i < candies.length; i++) { b[write][c] = candies[i]; write--; }
+        while (write >= segTop) { b[write][c] = Math.floor(Math.random() * candyTypes); write--; }
         r = segTop - 1;
       }
     }
-
     return true;
   };
 
+  // ✅ IMPROVED: applyDecisionToUI handles new actions PAUSE_SUGGEST & SIMPLIFY_BOARD
   const applyDecisionToUI = useCallback(
     (decision, currentBoard) => {
       if (!decision) return;
 
+      // Track action for research logging
+      actionsReceivedRef.current.push(decision.actionName);
+
       if (decision.actionName === "SHOW_HINT") {
         const hint = findHintSwap(currentBoard);
         if (!hint) return;
-
+        hintsShownRef.current += 1;
+        setHintsShown(h => h + 1);
         setHintSwap(hint);
         setTimeout(() => setHintSwap(null), 4000);
+      }
+
+      if (decision.actionName === "PAUSE_SUGGEST") {
+        setShowPauseSuggest(true);
+      }
+
+      if (decision.actionName === "SIMPLIFY_BOARD") {
+        setSimplifyBoard(true);
+        // Apply simplified board: reduce candy types to 4
+        setBoard(prev => prev.map(row => row.map(cell =>
+          cell >= 0 ? Math.min(cell, 3) : cell
+        )));
+        setTimeout(() => setSimplifyBoard(false), 15000); // 15s duration
+      }
+
+      // ✅ Safety: backend may flag session approaching hard cap
+      if (decision.safetyFlags?.approachingHardCap) {
+        setShowSessionWarning(true);
       }
     },
     [findHintSwap]
   );
 
-  /** ✅ Update DDA based on behaviour; can DOWNGRADE happy-start hard to easy. */
   const updateDifficultyFromBehaviour = useCallback((isValidMove) => {
     moveWindowRef.current.push(isValidMove);
     if (moveWindowRef.current.length > MAX_WINDOW) moveWindowRef.current.shift();
-
     const validMoves = moveWindowRef.current.filter(Boolean).length;
     const invalidMoves = moveWindowRef.current.length - validMoves;
-
     const timePlayedSec = Math.floor((Date.now() - gameStartTime.current) / 1000);
-
-    const dScore = computeDifficultyScore({
-      validMoves,
-      invalidMoves,
-      score: scoreRef.current,
-      timePlayedSec,
-      maxMovesWindow: MAX_WINDOW,
-    });
-
-    // Hysteresis thresholds (less bouncing)
+    const dScore = computeDifficultyScore({ validMoves, invalidMoves, score: scoreRef.current, timePlayedSec, maxMovesWindow: MAX_WINDOW });
     const cur = difficultyRef.current;
     let next = cur;
-
     if (cur === "easy") {
       if (dScore >= 0.78) next = "hard";
       else if (dScore >= 0.55) next = "medium";
@@ -881,103 +726,98 @@ export default function EmotionRLCandyCrush() {
       if (dScore >= 0.80) next = "hard";
       else if (dScore <= 0.40) next = "easy";
     } else if (cur === "hard") {
-      // ✅ allow hard -> easier if player struggles
       if (dScore <= 0.32) next = "easy";
       else if (dScore <= 0.52) next = "medium";
     }
-
     if (next !== cur) {
       difficultyRef.current = next;
       setDifficulty(next);
-
       const newSettings = getDifficultySettings(next);
       const oldSettings = settingsRef.current;
       settingsRef.current = newSettings;
-
-      // ✅ APPLY changes immediately so you can SEE them:
-      // If harder -> cap down. If easier -> raise up.
-      setTimeLeft((t) => {
-        if (newSettings.timeLimit < oldSettings.timeLimit) return Math.min(t, newSettings.timeLimit);
-        return Math.max(t, newSettings.timeLimit);
-      });
-
-      setMoves((m) => {
-        if (newSettings.startMoves < oldSettings.startMoves) return Math.min(m, newSettings.startMoves);
-        return Math.max(m, newSettings.startMoves);
-      });
-
-      // ✅ Adjust board: blockers + candy types (also removes blockers when going easier)
+      setTimeLeft((t) => newSettings.timeLimit < oldSettings.timeLimit ? Math.min(t, newSettings.timeLimit) : Math.max(t, newSettings.timeLimit));
+      setMoves((m) => newSettings.startMoves < oldSettings.startMoves ? Math.min(m, newSettings.startMoves) : Math.max(m, newSettings.startMoves));
       setBoard((prev) => adjustBoardForSettings(prev, newSettings));
     }
   }, []);
 
-  // ✅ initGame: HAPPY starts HARD, then behaviour can drop hard->easy
+  // ✅ Session duration ticker (updates every 30s for display)
+  useEffect(() => {
+    const ticker = setInterval(() => {
+      const dur = getSessionDuration();
+      setSessionDurationSec(dur);
+      // Hard cap enforcement
+      if (dur >= MAX_SESSION_MINUTES * 60 && !gameOver) {
+        setShowSessionWarning(true);
+      }
+    }, 5000);
+    return () => clearInterval(ticker);
+  }, [gameOver]);
+
   const initGame = useCallback(async () => {
     const size = getBoardSizeByEmotion(emotion);
     setBoardSize(size);
-
-    // ✅ reset win reward for this new round
     winRewardGivenRef.current = false;
     setWinReward(null);
+    setShowPauseSuggest(false);
+    setSimplifyBoard(false);
 
-    // ✅ Start difficulty rule:
-    // happy => start hard
-    // otherwise => start easy
     const startDiff = emotion === "happy" ? "hard" : "easy";
-
     setDifficulty(startDiff);
     difficultyRef.current = startDiff;
     settingsRef.current = getDifficultySettings(startDiff);
-
     resetBehaviourTracking();
 
     const s = settingsRef.current;
-
     const newBoard = generateBoard(size, s.candyTypes, s.blockers);
     setBoard(newBoard);
-
     setScore(0);
     scoreRef.current = 0;
-
     setMoves(s.startMoves);
-
-    // ✅ reset "mid-game feedback memory" at new game
     lastFeedbackMoveRef.current = s.startMoves;
-
     setCombo(0);
     setGameOver(false);
     setDidWin(false);
     setHintSwap(null);
     setRewardPops([]);
     gameStartTime.current = Date.now();
+    lastMoveTimeRef.current = Date.now();
+    moveHesitationSumRef.current = 0;
+    moveCountRef.current = 0;
+    hintsShownRef.current = 0;
+    hintsAcceptedRef.current = 0;
+    setHintsShown(0);
+    setHintsAccepted(0);
 
-    // ✅ reset timer + end flag
-    // Apply any pending reward to NEXT game start (bonus time + optional free hint)
+    // Track emotion at game start
+    emotionSequenceRef.current.push(emotion);
+
     const pending = pendingRewardRef.current;
-    if (pending?.bonusStartTimeSec) {
-      setTimeLeft(s.timeLimit + pending.bonusStartTimeSec);
-    } else {
-      setTimeLeft(s.timeLimit);
-    }
+    setTimeLeft(pending?.bonusStartTimeSec ? s.timeLimit + pending.bonusStartTimeSec : s.timeLimit);
     gameEndedRef.current = false;
 
-    // If pending reward gives a free hint, show it at start
     if (pending?.bonusHint) {
       const hint = findHintSwap(newBoard);
       if (hint) {
+        hintsShownRef.current += 1;
+        setHintsShown(1);
         setHintSwap(hint);
         setTimeout(() => setHintSwap(null), 4000);
       }
     }
-    // Clear pending so it doesn't repeat
     pendingRewardRef.current = null;
 
-    // ✅ Ask backend for decision (returns decisionId)
+    // ✅ IMPROVED: Send expanded state to backend
     const decision = await callBackend("/decision", {
       winRate: 0,
       avgTime: 0,
       retries: 0,
       emotion,
+      sessionDurationSec: getSessionDuration(),
+      consecutiveLosses: consecutiveLossesRef.current,
+      hintAcceptRate: getHintAcceptRate(),
+      moveHesitationSec: 2.0,
+      playerId: playerIdRef.current,
     });
 
     if (decision?.decisionId) {
@@ -985,60 +825,35 @@ export default function EmotionRLCandyCrush() {
     } else {
       lastDecisionIdRef.current = null;
     }
-
-    // ✅ Apply decision actions (SHOW_HINT -> real swap hint using newBoard)
     applyDecisionToUI(decision, newBoard);
   }, [emotion, callBackend, applyDecisionToUI, resetBehaviourTracking, findHintSwap]);
 
-  // Background music effect
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
 
   useEffect(() => {
     bgMusicEnabledRef.current = bgMusicEnabled;
-    if (bgMusicEnabled && !gameOver) {
-      soundSystem.startBackground();
-    } else {
-      soundSystem.stopBackground();
-    }
+    if (bgMusicEnabled && !gameOver) soundSystem.startBackground();
+    else soundSystem.stopBackground();
   }, [bgMusicEnabled, gameOver]);
 
   useEffect(() => {
-    if (!gameOver && bgMusicEnabled) {
-      soundSystem.startBackground();
-    } else {
-      soundSystem.stopBackground();
-    }
+    if (!gameOver && bgMusicEnabled) soundSystem.startBackground();
+    else soundSystem.stopBackground();
     return () => soundSystem.stopBackground();
   }, [gameOver, bgMusicEnabled]);
 
-  const toggleSound = () => {
-    setSoundEnabled(v => !v);
-  };
+  useEffect(() => { initGame(); }, [initGame]);
 
-  const toggleBgMusic = () => {
-    setBgMusicEnabled(v => !v);
-  };
-
-  useEffect(() => {
-    initGame();
-  }, [initGame]);
-
-  // ✅ TIME LIMIT countdown
   useEffect(() => {
     if (gameOver) return;
-
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
+        if (prev <= 1) { clearInterval(timer); return 0; }
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, [gameOver]);
 
@@ -1048,26 +863,38 @@ export default function EmotionRLCandyCrush() {
       gameEndedRef.current = true;
 
       const timePlayed = Math.floor((Date.now() - gameStartTime.current) / 1000);
-      const decisionId = lastDecisionIdRef.current;
+      const sessionDur = getSessionDuration();
+      const newConsecLosses = result === "win" ? 0 : consecutiveLossesRef.current + 1;
+      consecutiveLossesRef.current = newConsecLosses;
+      setConsecutiveLosses(newConsecLosses);
 
       setDidWin(result === "win");
       if (result === "win") playSound("playWin");
       else playSound("playLose");
 
+      // Track emotion at game end
+      emotionSequenceRef.current.push(emotion);
+
+      const decisionId = lastDecisionIdRef.current;
       if (decisionId) {
         await callBackend("/feedback", {
           decisionId,
-          winRate: 0,
+          winRate: result === "win" ? 1 : 0,
           avgTime: timePlayed,
-          retries: 0,
+          retries: moveWindowRef.current.filter(x => !x).length,
           emotion,
           timePlayed,
           quitEarly,
           result,
+          sessionDurationSec: sessionDur,
+          consecutiveLosses: newConsecLosses,
+          hintAcceptRate: getHintAcceptRate(),
+          moveHesitationSec: getAvgHesitation(),
+          hintsShown: hintsShownRef.current,
+          hintsAccepted: hintsAcceptedRef.current,
+          playerId: playerIdRef.current,
         });
         lastDecisionIdRef.current = null;
-      } else {
-        console.warn("[FRONTEND] endGame: no decisionId (feedback skipped)");
       }
 
       setGameOver(true);
@@ -1075,172 +902,187 @@ export default function EmotionRLCandyCrush() {
     [emotion, callBackend]
   );
 
-  // ✅ WIN condition (+ reward on win)
   useEffect(() => {
     if (!gameOver && score >= WIN_SCORE && !gameEndedRef.current) {
-      // ✅ Give reward once when win happens
       giveWinReward();
       endGame({ result: "win", quitEarly: false });
     }
   }, [score, gameOver, endGame, giveWinReward]);
 
-  // ✅ If timer reaches 0, end game (lose)
   useEffect(() => {
-    if (!gameOver && timeLeft === 0) {
+    if (!gameOver && timeLeft === 0) endGame({ result: "lose", quitEarly: true });
+  }, [timeLeft, gameOver, endGame]);
+
+  useEffect(() => {
+    if (moves <= 0 && !gameOver) endGame({ result: "lose", quitEarly: false });
+  }, [moves, gameOver, endGame]);
+
+  // ✅ Auto session-end if hard cap hit
+  useEffect(() => {
+    if (!gameOver && sessionDurationSec >= MAX_SESSION_MINUTES * 60) {
       endGame({ result: "lose", quitEarly: true });
     }
-  }, [timeLeft, gameOver, endGame]);
+  }, [sessionDurationSec, gameOver, endGame]);
 
   const handleClick = (r, c) => {
     if (gameOver) return;
-
-    // Blockers cannot be selected/swapped
     if (board?.[r]?.[c] === BLOCKER) return;
+
+    // ✅ Track hesitation time between moves
+    const now = Date.now();
+    const hesitation = (now - lastMoveTimeRef.current) / 1000;
+    if (moveCountRef.current > 0) {
+      moveHesitationSumRef.current += hesitation;
+    }
+    lastMoveTimeRef.current = now;
+    moveCountRef.current += 1;
 
     if (!selected) {
       playSound("playClick");
       return setSelected({ r, c });
     }
-
     const { r: r1, c: c1 } = selected;
-
     if (Math.abs(r - r1) + Math.abs(c - c1) === 1) {
-      // Prevent swapping with blocker
-      if (board?.[r1]?.[c1] === BLOCKER || board?.[r]?.[c] === BLOCKER) {
-        setSelected(null);
-        return;
-      }
-
+      if (board?.[r1]?.[c1] === BLOCKER || board?.[r]?.[c] === BLOCKER) { setSelected(null); return; }
       const copy = board.map((row) => [...row]);
       [copy[r][c], copy[r1][c1]] = [copy[r1][c1], copy[r][c]];
-
-      // ✅ Spend a move for every swap attempt
       setMoves((m) => m - 1);
-
       const isValid = findMatches(copy).length > 0;
 
       if (isValid) {
         playSound("playMatch", combo);
-        const s = settingsRef.current;
-        while (applyMatches(copy, s.candyTypes)) {}
-        setBoard(copy);
 
-        // ✅ Behaviour update (valid)
+        // ✅ If hint was showing, user accepted it
+        if (hintSwap) {
+          hintsAcceptedRef.current += 1;
+          setHintsAccepted(h => h + 1);
+        }
+
+        const s = settingsRef.current;
+        // ✅ Apply SIMPLIFY_BOARD: use fewer candy types if active
+        const effectiveCandyTypes = simplifyBoard ? Math.min(s.candyTypes, 4) : s.candyTypes;
+        while (applyMatches(copy, effectiveCandyTypes)) {}
+        setBoard(copy);
         updateDifficultyFromBehaviour(true);
 
-        // ✅ Ask AI after a VALID move (one decision per move, guarded)
         if (lastFeedbackMoveRef.current !== moves - 1) {
           lastFeedbackMoveRef.current = moves - 1;
-
           (async () => {
-            const timePlayed = Math.floor(
-              (Date.now() - gameStartTime.current) / 1000
-            );
-
+            const timePlayed = Math.floor((Date.now() - gameStartTime.current) / 1000);
             const decision = await callBackend("/decision", {
-              winRate: 0,
+              winRate: scoreRef.current / WIN_SCORE,
               avgTime: timePlayed,
-              retries: 0,
+              retries: moveWindowRef.current.filter(x => !x).length,
               emotion,
+              sessionDurationSec: getSessionDuration(),
+              consecutiveLosses: consecutiveLossesRef.current,
+              hintAcceptRate: getHintAcceptRate(),
+              moveHesitationSec: getAvgHesitation(),
+              playerId: playerIdRef.current,
             });
-
             if (decision?.decisionId) lastDecisionIdRef.current = decision.decisionId;
-
             applyDecisionToUI(decision, copy);
           })();
         }
       } else {
-        // ❌ Invalid move -> revert swap (move still counts)
         [copy[r][c], copy[r1][c1]] = [copy[r1][c1], copy[r][c]];
         setBoard(copy);
         playSound("playInvalid");
-
-        // ✅ Behaviour update (invalid)
         updateDifficultyFromBehaviour(false);
-
-        // ✅ penalty depends on current settings
         const s = settingsRef.current;
-        if (s.invalidPenaltySeconds > 0) {
-          setTimeLeft((t) => Math.max(0, t - s.invalidPenaltySeconds));
-        }
+        if (s.invalidPenaltySeconds > 0) setTimeLeft((t) => Math.max(0, t - s.invalidPenaltySeconds));
       }
     }
-
     setSelected(null);
   };
 
-  // ✅ When game ends by moves, lose
-  useEffect(() => {
-    if (moves <= 0 && !gameOver) {
-      endGame({ result: "lose", quitEarly: false });
-    }
-  }, [moves, gameOver, endGame]);
-
   const emotionStyles = {
-    happy: {
-      bg: "from-amber-400 via-yellow-400 to-orange-400",
-      text: "text-yellow-600",
-      icon: Heart,
-    },
-    sad: {
-      bg: "from-blue-400 via-indigo-500 to-purple-500",
-      text: "text-blue-600",
-      icon: Frown,
-    },
-    angry: {
-      bg: "from-red-400 via-orange-500 to-pink-500",
-      text: "text-red-600",
-      icon: Flame,
-    },
-    neutral: {
-      bg: "from-purple-400 via-pink-400 to-rose-400",
-      text: "text-purple-600",
-      icon: Meh,
-    },
+    happy:   { bg: "from-yellow-300 via-yellow-400 to-yellow-500", text: "text-yellow-700", icon: Heart },
+    sad:     { bg: "from-red-400 via-red-500 to-red-600",          text: "text-red-700",    icon: Frown },
+    angry:   { bg: "from-green-400 via-green-500 to-green-600",    text: "text-green-700",  icon: Flame },
+    neutral: { bg: "from-blue-400 via-blue-500 to-blue-600",       text: "text-blue-700",   icon: Meh   },
   };
-
   const EmotionIcon = emotionStyles[emotion].icon;
+
+  const sessionMinutes = Math.floor(sessionDurationSec / 60);
+  const isLongSession = sessionMinutes >= PAUSE_SUGGEST_MINUTES;
+  const isNearHardCap = sessionMinutes >= MAX_SESSION_MINUTES - 5;
 
   const difficultyBadge = (() => {
     const s = settingsRef.current;
-    const color =
-      difficulty === "hard"
-        ? "bg-red-100 text-red-700 border-red-200"
-        : difficulty === "medium"
-        ? "bg-yellow-100 text-yellow-700 border-yellow-200"
-        : "bg-emerald-100 text-emerald-700 border-emerald-200";
-
+    const color = difficulty === "hard"
+      ? "bg-red-100 text-red-700 border-red-200"
+      : difficulty === "medium"
+      ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+      : "bg-emerald-100 text-emerald-700 border-emerald-200";
     return (
-      <div
-        className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border ${color} font-semibold text-xs`}
-        title="Difficulty adapts based on behaviour (valid/invalid swaps + score speed)."
-      >
+      <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border ${color} font-semibold text-xs`}>
         <span>Difficulty:</span>
         <span className="font-black">{s.label}</span>
+        {simplifyBoard && <span className="text-blue-600">🔵 Simplified</span>}
       </div>
     );
   })();
 
   return (
-    <div
-      className={`h-screen flex bg-gradient-to-br ${emotionStyles[emotion].bg} relative overflow-hidden`}
-    >
-      {/* Animated background elements */}
+    <div className={`h-screen flex bg-gradient-to-br ${emotionStyles[emotion].bg} relative overflow-hidden`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-        <div
-          className="absolute bottom-20 right-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute top-1/2 left-1/2 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
-        ></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
       </div>
+
+      {/* ✅ PAUSE SUGGEST overlay — triggered by AI action */}
+      {showPauseSuggest && !gameOver && (
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40 animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 max-w-sm mx-4 text-center shadow-2xl">
+            <Coffee className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-black text-gray-800 mb-2">Time for a Break? ☕</h3>
+            <p className="text-gray-600 mb-4">
+              You've been playing for <span className="font-bold text-amber-600">{sessionMinutes} minutes</span>. 
+              A short rest helps keep your mind fresh!
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => { setShowPauseSuggest(false); endGame({ result: "lose", quitEarly: true }); }}
+                className="bg-amber-100 text-amber-700 px-5 py-3 rounded-xl font-bold hover:bg-amber-200 transition-all"
+              >
+                Take a Break
+              </button>
+              <button
+                onClick={() => setShowPauseSuggest(false)}
+                className="bg-purple-500 text-white px-5 py-3 rounded-xl font-bold hover:bg-purple-600 transition-all"
+              >
+                Keep Playing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ SESSION HARD CAP WARNING */}
+      {showSessionWarning && !gameOver && (
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-40 animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 max-w-sm mx-4 text-center shadow-2xl">
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-black text-gray-800 mb-2">Session Limit Reached</h3>
+            <p className="text-gray-600 mb-4">
+              You've been playing for {sessionMinutes} minutes today. 
+              For your wellbeing, we recommend taking a longer break now. 
+              Come back soon! 🌟
+            </p>
+            <button
+              onClick={() => { setShowSessionWarning(false); endGame({ result: "lose", quitEarly: true }); }}
+              className="bg-red-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-600 transition-all w-full"
+            >
+              End Session
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ===== SIDEBAR ===== */}
       <div className="w-80 bg-white/95 backdrop-blur-xl shadow-2xl relative z-10 flex flex-col">
-        {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
@@ -1252,7 +1094,6 @@ export default function EmotionRLCandyCrush() {
             </div>
           </div>
 
-          {/* ✅ Difficulty badge */}
           <div className="mt-3 flex items-center justify-between gap-2">
             {difficultyBadge}
             <div className="text-xs font-bold bg-gray-100 border border-gray-200 px-3 py-2 rounded-xl">
@@ -1260,48 +1101,47 @@ export default function EmotionRLCandyCrush() {
             </div>
           </div>
 
-          {/* Sound controls */}
+          {/* ✅ NEW: Session timer with safety color */}
+          <div className={`mt-3 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold ${
+            isNearHardCap ? "bg-red-100 text-red-700 border-red-200" :
+            isLongSession ? "bg-amber-100 text-amber-700 border-amber-200" :
+            "bg-gray-100 text-gray-600 border-gray-200"
+          }`}>
+            <Clock className="w-4 h-4" />
+            <span>Session: {sessionMinutes}m</span>
+            {isLongSession && <span>{isNearHardCap ? "⚠️ Near limit" : "☕ Consider a break"}</span>}
+          </div>
+
+          {/* ✅ NEW: Frustration warning */}
+          {consecutiveLosses >= 3 && (
+            <div className="mt-2 bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-xs text-orange-700 font-semibold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              {consecutiveLosses} losses in a row — AI is adapting!
+            </div>
+          )}
+
           <div className="mt-3 flex gap-2">
-            <button
-              onClick={toggleSound}
-              title="Toggle sound effects"
-              className={`flex-1 text-xs font-semibold px-3 py-2 rounded-xl border transition-all ${soundEnabled ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}
-            >
+            <button onClick={() => setSoundEnabled(v => !v)}
+              className={`flex-1 text-xs font-semibold px-3 py-2 rounded-xl border transition-all ${soundEnabled ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>
               {soundEnabled ? "🔊 SFX On" : "🔇 SFX Off"}
             </button>
-            <button
-              onClick={toggleBgMusic}
-              title="Toggle background music"
-              className={`flex-1 text-xs font-semibold px-3 py-2 rounded-xl border transition-all ${bgMusicEnabled ? "bg-pink-100 text-pink-700 border-pink-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}
-            >
+            <button onClick={() => setBgMusicEnabled(v => !v)}
+              className={`flex-1 text-xs font-semibold px-3 py-2 rounded-xl border transition-all ${bgMusicEnabled ? "bg-pink-100 text-pink-700 border-pink-200" : "bg-gray-100 text-gray-400 border-gray-200"}`}>
               {bgMusicEnabled ? "🎵 Music On" : "🎵 Music Off"}
             </button>
           </div>
-
-          {emotion === "happy" && (
-            <div className="mt-2 text-[11px] text-gray-500">
-              Happy emotion starts in <span className="font-bold">Hard</span>, then adapts by behaviour.
-            </div>
-          )}
         </div>
 
-        {/* Stats */}
         <div className="p-6 space-y-4 flex-1 overflow-auto">
-          {/* Current Emotion */}
-          <div
-            className={`p-4 rounded-2xl bg-gradient-to-br ${emotionStyles[emotion].bg} text-white shadow-lg transform transition-all duration-300 hover:scale-105`}
-          >
+          <div className={`p-4 rounded-2xl bg-gradient-to-br ${emotionStyles[emotion].bg} text-white shadow-lg transform transition-all duration-300 hover:scale-105`}>
             <div className="flex items-center gap-3 mb-2">
               <EmotionIcon className="w-6 h-6" />
               <span className="font-bold text-lg capitalize">{emotion}</span>
             </div>
-            <div className="text-sm opacity-90">
-              Grid Size: {boardSize}×{boardSize}
-            </div>
+            <div className="text-sm opacity-90">Grid Size: {boardSize}×{boardSize}</div>
             <div className="text-xs opacity-80 mt-1">Target: {WIN_SCORE} pts</div>
           </div>
 
-          {/* Score Card */}
           <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-2xl shadow-md border border-emerald-100">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-emerald-700">
@@ -1310,15 +1150,16 @@ export default function EmotionRLCandyCrush() {
               </div>
               <Sparkles className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-4xl font-black text-emerald-600 mb-1">
-              {Math.round(score)}
+            <div className="text-4xl font-black text-emerald-600 mb-1">{Math.round(score)}</div>
+            <div className="text-xs text-emerald-600/70">High Score: {Math.round(highScore)}</div>
+            {/* ✅ Progress bar toward WIN_SCORE */}
+            <div className="mt-2 h-2 bg-emerald-200 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+                style={{ width: `${Math.min(100, (score / WIN_SCORE) * 100)}%` }} />
             </div>
-            <div className="text-xs text-emerald-600/70">
-              High Score: {Math.round(highScore)}
-            </div>
+            <div className="text-xs text-emerald-600/60 mt-1">{Math.round((score / WIN_SCORE) * 100)}% to win</div>
           </div>
 
-          {/* Moves Card */}
           <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-5 rounded-2xl shadow-md border border-blue-100">
             <div className="flex items-center gap-2 text-blue-700 mb-3">
               <Target className="w-5 h-5" />
@@ -1326,60 +1167,44 @@ export default function EmotionRLCandyCrush() {
             </div>
             <div className="text-4xl font-black text-blue-600">{moves}</div>
             <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
-                style={{
-                  width: `${(moves / Math.max(1, settingsRef.current.startMoves)) * 100}%`,
-                }}
-              ></div>
+              <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
+                style={{ width: `${(moves / Math.max(1, settingsRef.current.startMoves)) * 100}%` }} />
             </div>
           </div>
 
-          {/* Time Left Card */}
           <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-5 rounded-2xl shadow-md border border-gray-100">
             <div className="flex items-center gap-2 text-gray-700 mb-3">
               <span className="font-semibold">Time Left</span>
             </div>
-            <div className="text-4xl font-black text-gray-800">
+            <div className={`text-4xl font-black ${timeLeft <= 20 ? "text-red-600 animate-pulse" : "text-gray-800"}`}>
               {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}
             </div>
             {settingsRef.current.invalidPenaltySeconds > 0 && (
-              <div className="text-xs text-gray-500 mt-2">
-                Invalid swap penalty: -{settingsRef.current.invalidPenaltySeconds}s
-              </div>
+              <div className="text-xs text-gray-500 mt-2">Invalid swap penalty: -{settingsRef.current.invalidPenaltySeconds}s</div>
             )}
           </div>
 
-          {/* Combo Card */}
           <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-5 rounded-2xl shadow-md border border-orange-100">
             <div className="flex items-center gap-2 text-orange-700 mb-3">
               <Zap className="w-5 h-5" />
               <span className="font-semibold">Combo Multiplier</span>
             </div>
             <div className="text-4xl font-black text-orange-600">×{combo}</div>
-            {combo > 0 && (
-              <div className="mt-2 text-xs text-orange-600 font-semibold animate-pulse">
-                🔥 On Fire!
-              </div>
-            )}
+            {combo > 0 && <div className="mt-2 text-xs text-orange-600 font-semibold animate-pulse">🔥 On Fire!</div>}
           </div>
 
-          {/* Emotion Selector */}
           <div className="pt-4">
             <p className="text-sm font-semibold text-gray-700 mb-3">Change Emotion</p>
             <div className="grid grid-cols-2 gap-2">
               {Object.entries(emotionStyles).map(([key, style]) => {
                 const Icon = style.icon;
                 return (
-                  <button
-                    key={key}
-                    onClick={() => setEmotion(key)}
+                  <button key={key} onClick={() => setEmotion(key)}
                     className={`p-3 rounded-xl transition-all duration-300 ${
                       emotion === key
                         ? `bg-gradient-to-br ${style.bg} text-white shadow-lg scale-105`
                         : "bg-gray-100 hover:bg-gray-200 text-gray-600"
-                    }`}
-                  >
+                    }`}>
                     <Icon className="w-5 h-5 mx-auto mb-1" />
                     <div className="text-xs font-semibold capitalize">{key}</div>
                   </button>
@@ -1389,14 +1214,20 @@ export default function EmotionRLCandyCrush() {
           </div>
         </div>
 
-        {/* Restart Button */}
-        <div className="p-6 border-t border-gray-200">
-          <button
-            onClick={initGame}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-105"
-          >
+        <div className="p-6 border-t border-gray-200 space-y-3">
+          <button onClick={initGame}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-105">
             <RotateCcw className="w-5 h-5" />
             New Game
+          </button>
+          <button
+            onClick={() => {
+              soundSystem.stopBackground();
+              if (onLogout) onLogout();
+            }}
+            className="w-full bg-gradient-to-r from-gray-100 to-gray-200 hover:from-red-50 hover:to-red-100 text-gray-600 hover:text-red-600 border border-gray-200 hover:border-red-200 px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2">
+            <LogOut className="w-5 h-5" />
+            Logout
           </button>
         </div>
       </div>
@@ -1405,63 +1236,46 @@ export default function EmotionRLCandyCrush() {
       <div className="flex-1 flex justify-center items-center p-8 relative z-10">
         <div className="relative">
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 relative">
-            <div
-              className="grid gap-2 relative"
-              style={{
-                gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
-                width: "fit-content",
-              }}
-            >
+            {/* ✅ SIMPLIFY_BOARD indicator */}
+            {simplifyBoard && (
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg animate-pulse z-10">
+                🔵 Simplified Mode — Fewer candy types to help!
+              </div>
+            )}
+            <div className="grid gap-2 relative"
+              style={{ gridTemplateColumns: `repeat(${boardSize}, 1fr)`, width: "fit-content" }}>
               {board.map((row, r) =>
                 row.map((cell, c) => {
                   const isBlocker = cell === BLOCKER;
                   const isEmpty = cell === EMPTY;
-
                   const bg = isBlocker
                     ? "linear-gradient(135deg, #374151, #111827)"
                     : isEmpty
                     ? "linear-gradient(135deg, #e5e7eb, #cbd5e1)"
                     : `linear-gradient(135deg, ${COLORS[cell]}, ${COLORS[cell]}dd)`;
-
                   const symbol = isBlocker ? "🧱" : isEmpty ? " " : CANDY_SYMBOLS[cell];
-
                   return (
-                    <button
-                      key={`${r}-${c}`}
-                      onClick={() => handleClick(r, c)}
+                    <button key={`${r}-${c}`} onClick={() => handleClick(r, c)}
                       disabled={isBlocker || isEmpty}
                       className={`w-14 h-14 text-3xl rounded-xl transition-all duration-200 transform shadow-md hover:shadow-xl ${
-                        isBlocker || isEmpty
-                          ? "opacity-90 cursor-not-allowed"
-                          : "hover:scale-110 hover:rotate-6"
+                        isBlocker || isEmpty ? "opacity-90 cursor-not-allowed" : "hover:scale-110 hover:rotate-6"
                       } ${
-                        selected?.r === r && selected?.c === c
-                          ? "ring-4 ring-white scale-110 shadow-2xl"
-                          : ""
+                        selected?.r === r && selected?.c === c ? "ring-4 ring-white scale-110 shadow-2xl" : ""
                       } ${
                         (hintSwap?.a?.r === r && hintSwap?.a?.c === c) ||
                         (hintSwap?.b?.r === r && hintSwap?.b?.c === c)
-                          ? "ring-4 ring-yellow-400 animate-bounce"
-                          : ""
+                          ? "ring-4 ring-yellow-400 animate-bounce" : ""
                       }`}
-                      style={{ background: bg }}
-                    >
+                      style={{ background: bg }}>
                       <span className="drop-shadow-lg">{symbol}</span>
                     </button>
                   );
                 })
               )}
-
               {rewardPops.map((p) => (
-                <div
-                  key={p.id}
+                <div key={p.id}
                   className="absolute text-green-500 font-black text-2xl animate-float-up pointer-events-none drop-shadow-lg"
-                  style={{
-                    top: `${p.r * 56 + 28}px`,
-                    left: `${p.c * 56 + 28}px`,
-                    zIndex: 1000,
-                  }}
-                >
+                  style={{ top: `${p.r * 56 + 28}px`, left: `${p.c * 56 + 28}px`, zIndex: 1000 }}>
                   +{p.value}
                 </div>
               ))}
@@ -1475,11 +1289,8 @@ export default function EmotionRLCandyCrush() {
         <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in">
           <div className="bg-white rounded-3xl p-10 max-w-md mx-4 text-center shadow-2xl transform animate-scale-in">
             <div className="text-7xl mb-4">{didWin ? "🏆" : "😢"}</div>
-            <h2 className="text-4xl font-black text-gray-800 mb-3">
-              {didWin ? "You Win!" : "Game Over"}
-            </h2>
+            <h2 className="text-4xl font-black text-gray-800 mb-3">{didWin ? "You Win!" : "Game Over"}</h2>
 
-            {/* ✅ Reward box on WIN */}
             {didWin && winReward && (
               <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-5 text-left">
                 <div className="font-black text-emerald-700 mb-2">🎁 Win Reward</div>
@@ -1494,21 +1305,22 @@ export default function EmotionRLCandyCrush() {
               </div>
             )}
 
-            <p className="text-gray-600 mb-2">
-              {didWin ? `Reached ${WIN_SCORE} points!` : "Final Score"}
-            </p>
-            <div className="text-5xl font-black text-purple-600 mb-6">
-              {Math.round(score)}
-            </div>
+            {/* ✅ Consecutive loss encouragement */}
+            {!didWin && consecutiveLosses >= 2 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 mb-4 text-sm text-blue-700">
+                💙 Don't give up! The AI is adjusting the game to help you. Try again!
+              </div>
+            )}
+
+            <p className="text-gray-600 mb-2">{didWin ? `Reached ${WIN_SCORE} points!` : "Final Score"}</p>
+            <div className="text-5xl font-black text-purple-600 mb-6">{Math.round(score)}</div>
             {score === highScore && score > 0 && (
               <div className="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full inline-block mb-6 font-semibold">
                 🎉 New High Score!
               </div>
             )}
-            <button
-              onClick={initGame}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 mx-auto transform hover:scale-105"
-            >
+            <button onClick={initGame}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 mx-auto transform hover:scale-105">
               <RotateCcw className="w-5 h-5" />
               Play Again
             </button>
