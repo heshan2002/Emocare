@@ -8,6 +8,42 @@ const capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
+// Helper function to group history by date
+const groupHistoryByDate = (history) => {
+  const groups = {
+    today: [],
+    yesterday: [],
+    earlier: []
+  };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  history.forEach(entry => {
+    const entryDate = new Date(entry.timestamp);
+    entryDate.setHours(0, 0, 0, 0);
+
+    if (entryDate.getTime() === today.getTime()) {
+      groups.today.push(entry);
+    } else if (entryDate.getTime() === yesterday.getTime()) {
+      groups.yesterday.push(entry);
+    } else {
+      groups.earlier.push(entry);
+    }
+  });
+
+  return groups;
+};
+
+// Format date for display
+const formatGroupDate = (date) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(date).toLocaleDateString(undefined, options);
+};
+
 const Chat = ({ user, token, onLogout }) => {
   const [messages, setMessages] = useState([]);
   const [history, setHistory] = useState([]);
@@ -20,6 +56,7 @@ const Chat = ({ user, token, onLogout }) => {
   const [analysisData, setAnalysisData] = useState(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [chartType, setChartType] = useState('bar');
+  const [isDarkMode, setIsDarkMode] = useState(true); // Default dark mode
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -35,6 +72,56 @@ const Chat = ({ user, token, onLogout }) => {
     "Joint pain relief",
     "Medication reminders"
   ];
+
+  // Theme colors
+  const theme = {
+    dark: {
+      background: 'linear-gradient(135deg, #1E1E1E 0%, #121212 100%)',
+      sidebarBg: 'linear-gradient(180deg, #1A1A1A 0%, #121212 100%)',
+      cardBg: '#2D2D2D',
+      border: '#404040',
+      text: '#FFFFFF',
+      textSecondary: '#E0E0E0',
+      textMuted: '#9E9E9E',
+      accent: '#BB86FC',
+      accentHover: '#9D6FCC',
+      userMessage: 'linear-gradient(135deg, #BB86FC 0%, #9D6FCC 100%)',
+      userMessageText: '#121212',
+      assistantMessage: '#2D2D2D',
+      inputBg: '#2D2D2D',
+      inputBorder: '#404040',
+      inputFocusBorder: '#BB86FC',
+      buttonNewChat: 'linear-gradient(135deg, #BB86FC 0%, #9D6FCC 100%)',
+      buttonLogout: 'linear-gradient(135deg, #CF6679 0%, #B0003A 100%)',
+      buttonAnalysis: 'linear-gradient(135deg, #03DAC6 0%, #018786 100%)',
+      shadow: '0 4px 15px rgba(0,0,0,0.5)',
+      hoverBg: '#3D3D3D'
+    },
+    light: {
+      background: 'linear-gradient(135deg, #f5f7fa 0%, #e9edf5 100%)',
+      sidebarBg: '#f8f9fa',
+      cardBg: '#ffffff',
+      border: '#e0e0e0',
+      text: '#2d3436',
+      textSecondary: '#2c3e50',
+      textMuted: '#7f8c8d',
+      accent: '#6C5CE7',
+      accentHover: '#5b4bc4',
+      userMessage: 'linear-gradient(135deg, #6C5CE7 0%, #a55eea 100%)',
+      userMessageText: '#ffffff',
+      assistantMessage: '#ffffff',
+      inputBg: '#ffffff',
+      inputBorder: '#e0e0e0',
+      inputFocusBorder: '#6C5CE7',
+      buttonNewChat: 'linear-gradient(135deg, #6C5CE7 0%, #a55eea 100%)',
+      buttonLogout: 'linear-gradient(135deg, #f44336 0%, #e74c3c 100%)',
+      buttonAnalysis: 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+      shadow: '0 4px 15px rgba(0,0,0,0.1)',
+      hoverBg: '#f1f8e9'
+    }
+  };
+
+  const currentTheme = isDarkMode ? theme.dark : theme.light;
 
   useEffect(() => {
     if (user) {
@@ -224,6 +311,11 @@ const Chat = ({ user, token, onLogout }) => {
     });
   };
 
+  // Toggle theme function
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   // UPDATED: New emotions list with only Sad, Angry, Neutral, Happy, Surprise
   const emotionsList = [
     { emoji: '😢', name: 'Sad', color: '#64B5F6' },
@@ -252,7 +344,7 @@ const Chat = ({ user, token, onLogout }) => {
                 marginLeft: '5px'
               }}>
                 <span style={{
-                  color: '#4CAF50',
+                  color: currentTheme.accent,
                   fontSize: '20px',
                   marginRight: '12px',
                   lineHeight: '1.4',
@@ -262,7 +354,7 @@ const Chat = ({ user, token, onLogout }) => {
                   flex: 1,
                   fontSize: '15px',
                   lineHeight: '1.5',
-                  color: '#2c3e50'
+                  color: isDarkMode ? '#E0E0E0' : '#2d3436'
                 }}>
                   {formatBoldText(line.replace('•', '').replace('-', '').trim())}
                 </span>
@@ -276,10 +368,10 @@ const Chat = ({ user, token, onLogout }) => {
               <div key={index} style={{
                 fontSize: '17px',
                 fontWeight: 'bold',
-                color: '#2c3e50',
+                color: isDarkMode ? '#FFFFFF' : '#2d3436',
                 marginBottom: '15px',
                 paddingBottom: '5px',
-                borderBottom: '1px dashed #4CAF50'
+                borderBottom: `1px dashed ${currentTheme.accent}`
               }}>
                 {formatBoldText(line)}
               </div>
@@ -295,7 +387,7 @@ const Chat = ({ user, token, onLogout }) => {
                 marginTop: '15px',
                 marginBottom: '5px',
                 fontStyle: 'italic',
-                color: '#7f8c8d',
+                color: currentTheme.textMuted,
                 fontSize: '14px'
               }}>
                 {line}
@@ -315,7 +407,7 @@ const Chat = ({ user, token, onLogout }) => {
                 margin: '10px 0',
                 fontSize: '15px',
                 lineHeight: '1.6',
-                color: '#2c3e50'
+                color: isDarkMode ? '#E0E0E0' : '#2d3436'
               }}>
                 {formatBoldText(line)}
               </p>
@@ -347,7 +439,7 @@ const Chat = ({ user, token, onLogout }) => {
     const renderBarChart = () => {
       const chartData = data.emotional_stats.chart_data || {};
       if (Object.keys(chartData).length === 0) {
-        return <p style={{ textAlign: 'center', color: '#95a5a6' }}>No emotional data recorded yet</p>;
+        return <p style={{ textAlign: 'center', color: currentTheme.textMuted }}>No emotional data recorded yet</p>;
       }
 
       const maxPercentage = Math.max(...Object.values(chartData).map(d => d.percentage));
@@ -363,7 +455,7 @@ const Chat = ({ user, token, onLogout }) => {
                   backgroundColor: data.color,
                   borderRadius: '8px 8px 0 0',
                   transition: 'height 0.5s ease-in-out',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                  boxShadow: isDarkMode ? '0 4px 6px rgba(0,0,0,0.3)' : '0 4px 6px rgba(0,0,0,0.1)',
                   position: 'relative',
                   display: 'flex',
                   alignItems: 'flex-end',
@@ -376,11 +468,11 @@ const Chat = ({ user, token, onLogout }) => {
                     transform: 'translateX(-50%)',
                     fontSize: '13px',
                     fontWeight: 'bold',
-                    color: '#2c3e50',
-                    backgroundColor: 'white',
+                    color: isDarkMode ? '#FFFFFF' : '#2d3436',
+                    backgroundColor: isDarkMode ? '#2D2D2D' : 'white',
                     padding: '2px 6px',
                     borderRadius: '12px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    boxShadow: isDarkMode ? '0 2px 4px rgba(0,0,0,0.3)' : '0 2px 4px rgba(0,0,0,0.1)'
                   }}>
                     {data.percentage}%
                   </span>
@@ -389,12 +481,12 @@ const Chat = ({ user, token, onLogout }) => {
                   marginTop: '12px', 
                   fontSize: '13px', 
                   fontWeight: 'bold',
-                  color: '#2c3e50',
+                  color: isDarkMode ? '#FFFFFF' : '#2d3436',
                   textAlign: 'center'
                 }}>
                   {emotion}
                 </span>
-                <span style={{ fontSize: '11px', color: '#7f8c8d', marginTop: '4px' }}>
+                <span style={{ fontSize: '11px', color: currentTheme.textMuted, marginTop: '4px' }}>
                   {data.count} {data.count === 1 ? 'time' : 'times'}
                 </span>
               </div>
@@ -425,7 +517,7 @@ const Chat = ({ user, token, onLogout }) => {
             background: `conic-gradient(${pieSlices.map(s => 
               `${s.color} ${s.start}% ${s.end}%`
             ).join(', ')})`,
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+            boxShadow: isDarkMode ? '0 4px 15px rgba(0,0,0,0.4)' : '0 4px 15px rgba(0,0,0,0.2)',
             margin: '20px auto'
           }} />
           <div style={{ minWidth: '200px' }}>
@@ -437,15 +529,15 @@ const Chat = ({ user, token, onLogout }) => {
                   backgroundColor: color,
                   borderRadius: '4px',
                   marginRight: '12px',
-                  boxShadow: '0 2px 3px rgba(0,0,0,0.1)'
+                  boxShadow: isDarkMode ? '0 2px 3px rgba(0,0,0,0.3)' : '0 2px 3px rgba(0,0,0,0.1)'
                 }} />
-                <span style={{ fontSize: '14px', color: '#2c3e50', flex: 1 }}>
+                <span style={{ fontSize: '14px', color: isDarkMode ? '#FFFFFF' : '#2d3436', flex: 1 }}>
                   {emotion}
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#2c3e50', marginRight: '10px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#2d3436', marginRight: '10px' }}>
                   {percentage}%
                 </span>
-                <span style={{ fontSize: '12px', color: '#7f8c8d' }}>
+                <span style={{ fontSize: '12px', color: currentTheme.textMuted }}>
                   ({count})
                 </span>
               </div>
@@ -462,7 +554,7 @@ const Chat = ({ user, token, onLogout }) => {
 
       return (
         <div style={{ marginTop: '30px' }}>
-          <h4 style={{ color: '#2c3e50', marginBottom: '15px', fontSize: '16px', borderBottom: '2px solid #4CAF50', paddingBottom: '8px' }}>
+          <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#2d3436', marginBottom: '15px', fontSize: '16px', borderBottom: `2px solid ${currentTheme.accent}`, paddingBottom: '8px' }}>
             📋 Recent Check-ins
           </h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -478,18 +570,18 @@ const Chat = ({ user, token, onLogout }) => {
               return (
                 <div key={i} style={{
                   padding: '8px 15px',
-                  backgroundColor: '#f8f9fa',
+                  backgroundColor: isDarkMode ? '#2D2D2D' : '#f8f9fa',
                   borderRadius: '25px',
-                  border: `2px solid ${emotionColors[item.emotion] || '#e0e0e0'}`,
+                  border: `2px solid ${emotionColors[item.emotion] || (isDarkMode ? '#404040' : '#e0e0e0')}`,
                   fontSize: '13px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px'
                 }}>
-                  <span style={{ color: '#7f8c8d' }}>{item.date}:</span>
+                  <span style={{ color: currentTheme.textMuted }}>{item.date}:</span>
                   <span style={{ 
                     fontWeight: 'bold',
-                    color: emotionColors[item.emotion] || '#2c3e50'
+                    color: emotionColors[item.emotion] || (isDarkMode ? '#FFFFFF' : '#2d3436')
                   }}>
                     {item.emotion}
                   </span>
@@ -508,17 +600,19 @@ const Chat = ({ user, token, onLogout }) => {
 
       return (
         <div style={{ marginTop: '30px' }}>
-          <h4 style={{ color: '#2c3e50', marginBottom: '15px', fontSize: '16px', borderBottom: '2px solid #4CAF50', paddingBottom: '8px' }}>
+          <h4 style={{ color: isDarkMode ? '#FFFFFF' : '#2d3436', marginBottom: '15px', fontSize: '16px', borderBottom: `2px solid ${currentTheme.accent}`, paddingBottom: '8px' }}>
             💡 Personalized Recommendations Based on Your Profile
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             {recommendations.map((rec, i) => (
               <div key={i} style={{
                 padding: '18px',
-                backgroundColor: rec.category === 'health' ? '#fff8e7' : '#f0f9f0',
+                backgroundColor: isDarkMode 
+                  ? (rec.category === 'health' ? '#3D2E1C' : '#2D2D2D')
+                  : (rec.category === 'health' ? '#fff8e7' : '#f8f9fa'),
                 borderRadius: '12px',
-                borderLeft: `6px solid ${rec.category === 'health' ? '#f39c12' : '#4CAF50'}`,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                borderLeft: `6px solid ${rec.category === 'health' ? '#f39c12' : currentTheme.accent}`,
+                boxShadow: isDarkMode ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.05)',
                 transition: 'transform 0.2s',
                 cursor: 'pointer'
               }}
@@ -528,8 +622,8 @@ const Chat = ({ user, token, onLogout }) => {
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{
                     padding: '4px 12px',
-                    backgroundColor: rec.category === 'health' ? '#f39c12' : '#4CAF50',
-                    color: 'white',
+                    backgroundColor: rec.category === 'health' ? '#f39c12' : currentTheme.accent,
+                    color: isDarkMode ? '#121212' : 'white',
                     borderRadius: '20px',
                     fontSize: '11px',
                     fontWeight: 'bold',
@@ -539,7 +633,7 @@ const Chat = ({ user, token, onLogout }) => {
                     {rec.category === 'health' ? '🏥 Health Tip' : '🎯 Activity Suggestion'}
                   </span>
                 </div>
-                <p style={{ margin: 0, color: '#2c3e50', lineHeight: '1.6', fontSize: '14px' }}>
+                <p style={{ margin: 0, color: isDarkMode ? '#E0E0E0' : '#2d3436', lineHeight: '1.6', fontSize: '14px' }}>
                   {rec.text}
                 </p>
               </div>
@@ -556,7 +650,7 @@ const Chat = ({ user, token, onLogout }) => {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.8)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -564,19 +658,20 @@ const Chat = ({ user, token, onLogout }) => {
         padding: '20px'
       }}>
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: isDarkMode ? '#1E1E1E' : 'white',
           borderRadius: '20px',
           padding: '30px',
           maxWidth: '1000px',
           width: '95%',
           maxHeight: '85vh',
           overflowY: 'auto',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          animation: 'slideIn 0.3s ease-out'
+          boxShadow: isDarkMode ? '0 20px 60px rgba(0,0,0,0.5)' : '0 20px 60px rgba(0,0,0,0.3)',
+          animation: 'slideIn 0.3s ease-out',
+          border: isDarkMode ? '1px solid #333333' : 'none'
         }}>
           {/* Medical Report Header with Logo */}
           <div style={{ 
-            borderBottom: '2px solid #4CAF50',
+            borderBottom: `2px solid ${currentTheme.accent}`,
             paddingBottom: '15px',
             marginBottom: '25px',
             display: 'flex',
@@ -592,26 +687,27 @@ const Chat = ({ user, token, onLogout }) => {
                 style={{ 
                   width: '50px', 
                   height: '50px',
-                  borderRadius: '10px'
+                  borderRadius: '10px',
+                  filter: isDarkMode ? 'brightness(1.2)' : 'none'
                 }} 
               />
               <div>
-                <h1 style={{ color: '#2c3e50', margin: 0, fontSize: '24px', fontWeight: '600' }}>
+                <h1 style={{ color: isDarkMode ? '#FFFFFF' : '#2d3436', margin: 0, fontSize: '24px', fontWeight: '600' }}>
                   EMOCARE HEALTH SUMMARY
                 </h1>
-                <p style={{ margin: '5px 0 0', color: '#7f8c8d', fontSize: '12px' }}>
+                <p style={{ margin: '5px 0 0', color: currentTheme.textMuted, fontSize: '12px' }}>
                   Report ID: EM-{Math.floor(Math.random() * 10000)} • Generated: {data.generated_at}
                 </p>
               </div>
             </div>
             <div style={{
-              backgroundColor: '#e8f5e9',
-              color: '#4CAF50',
+              backgroundColor: isDarkMode ? '#2D2D2D' : '#f8f9fa',
+              color: currentTheme.accent,
               padding: '5px 15px',
               borderRadius: '20px',
               fontSize: '12px',
               fontWeight: 'bold',
-              border: '1px solid #4CAF50'
+              border: `1px solid ${currentTheme.accent}`
             }}>
               ⚕️ CONFIDENTIAL
             </div>
@@ -623,39 +719,40 @@ const Chat = ({ user, token, onLogout }) => {
             gridTemplateColumns: '1fr 1fr',
             gap: '20px',
             marginBottom: '25px',
-            backgroundColor: '#f8f9fa',
+            backgroundColor: isDarkMode ? '#2D2D2D' : '#f8f9fa',
             padding: '20px',
-            borderRadius: '10px'
+            borderRadius: '10px',
+            border: isDarkMode ? '1px solid #404040' : 'none'
           }}>
             {/* Left Column */}
             <div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '12px', color: '#7f8c8d', display: 'block', marginBottom: '3px' }}>
+                <label style={{ fontSize: '12px', color: currentTheme.textMuted, display: 'block', marginBottom: '3px' }}>
                   PATIENT NAME
                 </label>
-                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#2c3e50' }}>
+                <div style={{ fontSize: '18px', fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#2d3436' }}>
                   {data.patient_info.name}
                 </div>
               </div>
               
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '12px', color: '#7f8c8d', display: 'block', marginBottom: '3px' }}>
+                <label style={{ fontSize: '12px', color: currentTheme.textMuted, display: 'block', marginBottom: '3px' }}>
                   AGE
                 </label>
-                <div style={{ fontSize: '16px', color: '#2c3e50' }}>
+                <div style={{ fontSize: '16px', color: isDarkMode ? '#FFFFFF' : '#2d3436' }}>
                   {data.patient_info.age} years
                 </div>
               </div>
               
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '12px', color: '#7f8c8d', display: 'block', marginBottom: '3px' }}>
+                <label style={{ fontSize: '12px', color: currentTheme.textMuted, display: 'block', marginBottom: '3px' }}>
                   MEDICAL HISTORY
                 </label>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {data.patient_info.medical.map((condition, i) => (
                     <span key={i} style={{
-                      backgroundColor: '#ffebee',
-                      color: '#c62828',
+                      backgroundColor: isDarkMode ? '#4A2C2C' : '#ffebee',
+                      color: isDarkMode ? '#FF8A80' : '#c62828',
                       padding: '4px 10px',
                       borderRadius: '15px',
                       fontSize: '13px',
@@ -665,7 +762,7 @@ const Chat = ({ user, token, onLogout }) => {
                     </span>
                   ))}
                   {data.patient_info.medical.length === 0 && (
-                    <span style={{ color: '#7f8c8d' }}>No reported conditions</span>
+                    <span style={{ color: currentTheme.textMuted }}>No reported conditions</span>
                   )}
                 </div>
               </div>
@@ -674,14 +771,14 @@ const Chat = ({ user, token, onLogout }) => {
             {/* Right Column */}
             <div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '12px', color: '#7f8c8d', display: 'block', marginBottom: '3px' }}>
+                <label style={{ fontSize: '12px', color: currentTheme.textMuted, display: 'block', marginBottom: '3px' }}>
                   LIFESTYLE & HABITS
                 </label>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {data.patient_info.habits.map((habit, i) => (
                     <span key={i} style={{
-                      backgroundColor: '#e3f2fd',
-                      color: '#1565c0',
+                      backgroundColor: isDarkMode ? '#1E3A5F' : '#e3f2fd',
+                      color: isDarkMode ? '#82B1FF' : '#1565c0',
                       padding: '4px 10px',
                       borderRadius: '15px',
                       fontSize: '13px'
@@ -690,20 +787,20 @@ const Chat = ({ user, token, onLogout }) => {
                     </span>
                   ))}
                   {data.patient_info.habits.length === 0 && (
-                    <span style={{ color: '#7f8c8d' }}>No habits reported</span>
+                    <span style={{ color: currentTheme.textMuted }}>No habits reported</span>
                   )}
                 </div>
               </div>
               
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '12px', color: '#7f8c8d', display: 'block', marginBottom: '3px' }}>
+                <label style={{ fontSize: '12px', color: currentTheme.textMuted, display: 'block', marginBottom: '3px' }}>
                   HOBBIES & INTERESTS
                 </label>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {data.patient_info.hobbies.map((hobby, i) => (
                     <span key={i} style={{
-                      backgroundColor: '#e8f5e9',
-                      color: '#2e7d32',
+                      backgroundColor: isDarkMode ? '#1E3A2C' : '#e8f5e9',
+                      color: isDarkMode ? '#81C784' : '#2e7d32',
                       padding: '4px 10px',
                       borderRadius: '15px',
                       fontSize: '13px'
@@ -712,16 +809,16 @@ const Chat = ({ user, token, onLogout }) => {
                     </span>
                   ))}
                   {data.patient_info.hobbies.length === 0 && (
-                    <span style={{ color: '#7f8c8d' }}>No hobbies reported</span>
+                    <span style={{ color: currentTheme.textMuted }}>No hobbies reported</span>
                   )}
                 </div>
               </div>
               
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ fontSize: '12px', color: '#7f8c8d', display: 'block', marginBottom: '3px' }}>
+                <label style={{ fontSize: '12px', color: currentTheme.textMuted, display: 'block', marginBottom: '3px' }}>
                   TOTAL SESSIONS
                 </label>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#2c3e50' }}>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: isDarkMode ? '#FFFFFF' : '#2d3436' }}>
                   {data.emotional_stats.total_checkins} emotional check-ins
                 </div>
               </div>
@@ -730,26 +827,26 @@ const Chat = ({ user, token, onLogout }) => {
 
           {/* Chart Section with Toggle */}
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: isDarkMode ? '#2D2D2D' : 'white',
             borderRadius: '15px',
             padding: '25px',
             marginBottom: '25px',
-            border: '1px solid #e0e0e0',
-            boxShadow: '0 5px 15px rgba(0,0,0,0.05)'
+            border: isDarkMode ? '1px solid #404040' : '1px solid #e0e0e0',
+            boxShadow: isDarkMode ? '0 5px 15px rgba(0,0,0,0.3)' : '0 5px 15px rgba(0,0,0,0.05)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-              <h3 style={{ color: '#2c3e50', margin: 0, fontSize: '18px' }}>
+              <h3 style={{ color: isDarkMode ? '#FFFFFF' : '#2d3436', margin: 0, fontSize: '18px' }}>
                 📊 EMOTIONAL DISTRIBUTION
               </h3>
               
               {/* Chart Type Selector */}
-              <div style={{ display: 'flex', gap: '8px', backgroundColor: '#f0f0f0', padding: '4px', borderRadius: '30px' }}>
+              <div style={{ display: 'flex', gap: '8px', backgroundColor: isDarkMode ? '#1E1E1E' : '#f0f0f0', padding: '4px', borderRadius: '30px' }}>
                 <button 
                   onClick={() => setChartType('bar')}
                   style={{
                     padding: '8px 16px',
-                    backgroundColor: chartType === 'bar' ? '#4CAF50' : 'transparent',
-                    color: chartType === 'bar' ? 'white' : '#2c3e50',
+                    backgroundColor: chartType === 'bar' ? currentTheme.accent : 'transparent',
+                    color: chartType === 'bar' ? (isDarkMode ? '#121212' : 'white') : (isDarkMode ? '#FFFFFF' : '#2d3436'),
                     border: 'none',
                     borderRadius: '25px',
                     cursor: 'pointer',
@@ -764,8 +861,8 @@ const Chat = ({ user, token, onLogout }) => {
                   onClick={() => setChartType('pie')}
                   style={{
                     padding: '8px 16px',
-                    backgroundColor: chartType === 'pie' ? '#4CAF50' : 'transparent',
-                    color: chartType === 'pie' ? 'white' : '#2c3e50',
+                    backgroundColor: chartType === 'pie' ? currentTheme.accent : 'transparent',
+                    color: chartType === 'pie' ? (isDarkMode ? '#121212' : 'white') : (isDarkMode ? '#FFFFFF' : '#2d3436'),
                     border: 'none',
                     borderRadius: '25px',
                     cursor: 'pointer',
@@ -800,8 +897,8 @@ const Chat = ({ user, token, onLogout }) => {
               
               return (
                 <div key={emotion} style={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e0e0e0',
+                  backgroundColor: isDarkMode ? '#2D2D2D' : 'white',
+                  border: isDarkMode ? '1px solid #404040' : '1px solid #e0e0e0',
                   borderRadius: '10px',
                   padding: '15px',
                   textAlign: 'center'
@@ -812,7 +909,7 @@ const Chat = ({ user, token, onLogout }) => {
                   <div style={{ fontSize: '20px', fontWeight: 'bold', color: d.color }}>
                     {d.percentage}%
                   </div>
-                  <div style={{ fontSize: '12px', color: '#7f8c8d' }}>
+                  <div style={{ fontSize: '12px', color: currentTheme.textMuted }}>
                     {emotion}
                   </div>
                 </div>
@@ -825,17 +922,18 @@ const Chat = ({ user, token, onLogout }) => {
 
           {/* Doctor's Notes */}
           <div style={{
-            backgroundColor: '#fff3e0',
-            borderLeft: '4px solid #f39c12',
+            backgroundColor: isDarkMode ? '#2D2D2D' : '#f8f9fa',
+            borderLeft: `4px solid ${currentTheme.accent}`,
             padding: '20px',
             borderRadius: '8px',
-            marginBottom: '20px'
+            marginBottom: '20px',
+            border: isDarkMode ? '1px solid #404040' : 'none'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
               <span style={{ fontSize: '20px' }}>👨‍⚕️</span>
-              <h4 style={{ margin: 0, color: '#e67e22' }}>Clinical Observations</h4>
+              <h4 style={{ margin: 0, color: currentTheme.accent }}>Clinical Observations</h4>
             </div>
-            <p style={{ margin: 0, color: '#2c3e50', lineHeight: '1.6', fontSize: '14px' }}>
+            <p style={{ margin: 0, color: isDarkMode ? '#E0E0E0' : '#2d3436', lineHeight: '1.6', fontSize: '14px' }}>
               Patient {data.patient_info.name} has completed {data.emotional_stats.total_checkins} emotional wellness sessions.
               {data.patient_info.medical.length > 0 && ` Medical history includes ${data.patient_info.medical.join(' and ')}.`}
               {data.patient_info.habits.length > 0 && ` Daily routine includes ${data.patient_info.habits.join(' and ')}.`}
@@ -851,13 +949,13 @@ const Chat = ({ user, token, onLogout }) => {
             marginBottom: '20px'
           }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#7f8c8d', marginBottom: '5px' }}>EMOTIONAL WELLNESS</div>
+              <div style={{ fontSize: '12px', color: currentTheme.textMuted, marginBottom: '5px' }}>EMOTIONAL WELLNESS</div>
               <div style={{ 
                 fontSize: '20px', 
                 fontWeight: 'bold',
                 color: Object.keys(data.emotional_stats.chart_data || {}).length > 0 ? 
                   (Object.entries(data.emotional_stats.chart_data).some(([e]) => e === 'Happy') ? '#4CAF50' : '#f39c12') 
-                  : '#7f8c8d'
+                  : currentTheme.textMuted
               }}>
                 {Object.keys(data.emotional_stats.chart_data || {}).length > 0 ? 
                   Math.round(Object.values(data.emotional_stats.chart_data).reduce((acc, curr) => {
@@ -867,15 +965,15 @@ const Chat = ({ user, token, onLogout }) => {
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#7f8c8d', marginBottom: '5px' }}>ENGAGEMENT LEVEL</div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#3498db' }}>
+              <div style={{ fontSize: '12px', color: currentTheme.textMuted, marginBottom: '5px' }}>ENGAGEMENT LEVEL</div>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#64B5F6' }}>
                 {data.emotional_stats.total_checkins > 10 ? 'High' : 
                  data.emotional_stats.total_checkins > 5 ? 'Medium' : 'Moderate'}
               </div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#7f8c8d', marginBottom: '5px' }}>LAST ACTIVE</div>
-              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#9b59b6' }}>
+              <div style={{ fontSize: '12px', color: currentTheme.textMuted, marginBottom: '5px' }}>LAST ACTIVE</div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#CE93D8' }}>
                 {data.emotional_stats.recent_checkins && data.emotional_stats.recent_checkins.length > 0 
                   ? data.emotional_stats.recent_checkins[data.emotional_stats.recent_checkins.length - 1].date 
                   : 'N/A'}
@@ -888,24 +986,24 @@ const Chat = ({ user, token, onLogout }) => {
 
           {/* Footer with Signature */}
           <div style={{
-            borderTop: '1px dashed #e0e0e0',
+            borderTop: isDarkMode ? '1px dashed #404040' : '1px dashed #e0e0e0',
             paddingTop: '20px',
             marginTop: '10px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <div style={{ fontSize: '12px', color: '#95a5a6' }}>
+            <div style={{ fontSize: '12px', color: currentTheme.textMuted }}>
               <span style={{ fontWeight: 'bold' }}>Electronically Generated Report</span> • For medical use only
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <div style={{ fontSize: '12px', color: '#7f8c8d' }}>
+              <div style={{ fontSize: '12px', color: currentTheme.textMuted }}>
                 Attending: Dr. EmoCare AI
               </div>
               <div style={{
                 width: '100px',
                 height: '30px',
-                background: 'repeating-linear-gradient(45deg, #4CAF50, #4CAF50 10px, #45a049 10px, #45a049 20px)',
+                background: `repeating-linear-gradient(45deg, ${currentTheme.accent}, ${currentTheme.accent} 10px, ${currentTheme.accentHover} 10px, ${currentTheme.accentHover} 20px)`,
                 borderRadius: '5px',
                 opacity: 0.3
               }} />
@@ -936,7 +1034,7 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
               }}
               style={{
                 padding: '12px 24px',
-                backgroundColor: '#3498db',
+                backgroundColor: '#2196F3',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
@@ -945,8 +1043,8 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
                 fontWeight: 'bold',
                 transition: 'all 0.3s'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#2980b9'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#3498db'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#1976D2'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#2196F3'}
             >
               📋 Copy Report
             </button>
@@ -954,8 +1052,8 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
               onClick={onClose}
               style={{
                 padding: '12px 30px',
-                backgroundColor: '#4CAF50',
-                color: 'white',
+                backgroundColor: currentTheme.accent,
+                color: isDarkMode ? '#121212' : 'white',
                 border: 'none',
                 borderRadius: '8px',
                 cursor: 'pointer',
@@ -963,8 +1061,8 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
                 fontWeight: 'bold',
                 transition: 'all 0.3s'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = currentTheme.accentHover}
+              onMouseLeave={(e) => e.target.style.backgroundColor = currentTheme.accent}
             >
               Close
             </button>
@@ -976,14 +1074,14 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
 
   return (
     <div style={{ display: 'flex', height: '100vh', fontFamily: 'Arial, sans-serif' }}>
-      {/* Sidebar History */}
+      {/* Sidebar History - Theme based */}
       <div style={{ 
         width: '300px', 
-        borderRight: '1px solid #e0e0e0', 
+        borderRight: `1px solid ${currentTheme.border}`, 
         padding: '20px',
-        backgroundColor: '#f8f9fa',
+        background: isDarkMode ? currentTheme.sidebarBg : currentTheme.sidebarBg,
         overflowY: 'auto',
-        boxShadow: '2px 0 5px rgba(0,0,0,0.05)'
+        boxShadow: currentTheme.shadow
       }}>
         {/* Emocare Logo - Image */}
         <div style={{
@@ -991,40 +1089,76 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
           justifyContent: 'center',
           alignItems: 'center',
           marginBottom: '30px',
-          padding: '15px',
-          backgroundColor: 'white',
-          borderRadius: '15px',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+          padding: '20px',
+          //backgroundColor: currentTheme.cardBg,
+          //borderRadius: '15px',
+          //border: `1px solid ${currentTheme.border}`
         }}>
           <img 
             src={emocareLogo} 
             alt="Emocare Logo" 
             style={{ 
-              maxWidth: '180px', 
-              maxHeight: '80px',
-              objectFit: 'contain'
+              maxWidth: '250px', 
+              maxHeight: '150px',
+              objectFit: 'contain',
+              filter: isDarkMode ? 'brightness(1.2)' : 'none'
             }} 
           />
         </div>
         
         <div style={{ marginBottom: '20px' }}>
+          {/* Theme Toggle Button */}
+          <button 
+            onClick={toggleTheme}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: isDarkMode ? '#2D2D2D' : '#e0e0e0',
+              color: isDarkMode ? '#BB86FC' : '#2d3436',
+              border: `2px solid ${currentTheme.accent}`,
+              borderRadius: '10px',
+              cursor: 'pointer',
+              marginBottom: '12px',
+              fontSize: '15px',
+              fontWeight: 'bold',
+              transition: 'all 0.3s'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = currentTheme.accent;
+              e.target.style.color = isDarkMode ? '#121212' : 'white';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = isDarkMode ? '#2D2D2D' : '#e0e0e0';
+              e.target.style.color = isDarkMode ? '#BB86FC' : '#2d3436';
+            }}
+          >
+            {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
+
           <button 
             onClick={startNewChat}
             style={{
               width: '100%',
-              padding: '12px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
+              padding: '14px',
+              background: currentTheme.buttonNewChat,
+              color: isDarkMode ? '#121212' : 'white',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               cursor: 'pointer',
-              marginBottom: '10px',
-              fontSize: '14px',
+              marginBottom: '12px',
+              fontSize: '15px',
               fontWeight: 'bold',
-              transition: 'background 0.3s'
+              boxShadow: currentTheme.shadow,
+              transition: 'all 0.3s'
             }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#45a049'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#4CAF50'}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = isDarkMode ? '0 6px 20px rgba(187, 134, 252, 0.5)' : '0 6px 20px rgba(108, 92, 231, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = currentTheme.shadow;
+            }}
           >
             ✨ New Chat
           </button>
@@ -1033,19 +1167,26 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
             onClick={onLogout}
             style={{
               width: '100%',
-              padding: '12px',
-              backgroundColor: '#f44336',
+              padding: '14px',
+              background: currentTheme.buttonLogout,
               color: 'white',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               cursor: 'pointer',
-              fontSize: '14px',
+              fontSize: '15px',
               fontWeight: 'bold',
-              transition: 'background 0.3s',
-              marginBottom: '10px'
+              boxShadow: currentTheme.shadow,
+              transition: 'all 0.3s',
+              marginBottom: '12px'
             }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#d32f2f'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#f44336'}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = isDarkMode ? '0 6px 20px rgba(207, 102, 121, 0.5)' : '0 6px 20px rgba(244, 67, 54, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = currentTheme.shadow;
+            }}
           >
             🚪 Logout
           </button>
@@ -1056,25 +1197,28 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
             disabled={loadingAnalysis}
             style={{
               width: '100%',
-              padding: '12px',
-              backgroundColor: '#9b59b6',
-              color: 'white',
+              padding: '14px',
+              background: currentTheme.buttonAnalysis,
+              color: isDarkMode ? '#121212' : 'white',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '10px',
               cursor: loadingAnalysis ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
+              fontSize: '15px',
               fontWeight: 'bold',
               opacity: loadingAnalysis ? 0.6 : 1,
-              transition: 'background 0.3s'
+              boxShadow: currentTheme.shadow,
+              transition: 'all 0.3s'
             }}
             onMouseEnter={(e) => {
               if (!loadingAnalysis) {
-                e.target.style.backgroundColor = '#8e44ad';
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = isDarkMode ? '0 6px 20px rgba(3, 218, 198, 0.5)' : '0 6px 20px rgba(155, 89, 182, 0.3)';
               }
             }}
             onMouseLeave={(e) => {
               if (!loadingAnalysis) {
-                e.target.style.backgroundColor = '#9b59b6';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = currentTheme.shadow;
               }
             }}
           >
@@ -1085,55 +1229,225 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
         {history.length === 0 ? (
           <div style={{ 
             textAlign: 'center', 
-            color: '#95a5a6',
+            color: currentTheme.textMuted,
             padding: '20px',
-            backgroundColor: 'white',
-            borderRadius: '8px'
+            backgroundColor: currentTheme.cardBg,
+            borderRadius: '10px',
+            border: `1px solid ${currentTheme.border}`
           }}>
             No chat history yet
           </div>
         ) : (
-          history.map((entry, i) => (
-            <button 
-              key={i} 
-              onClick={() => loadChatFromHistory(entry.messages)}
-              style={{
-                display: 'block',
-                width: '100%',
-                padding: '12px',
-                margin: '8px 0',
-                backgroundColor: 'white',
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'all 0.3s',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#f1f8e9';
-                e.target.style.borderColor = '#4CAF50';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'white';
-                e.target.style.borderColor = '#e0e0e0';
-              }}
-            >
-              <strong style={{ color: '#2c3e50' }}>{entry.emotion}</strong>
-              <br />
-              <small style={{ color: '#7f8c8d' }}>{formatTimestamp(entry.timestamp)}</small>
-            </button>
-          ))
+          <>
+            {(() => {
+              const groupedHistory = groupHistoryByDate(history);
+              
+              return (
+                <>
+                  {/* Today */}
+                  {groupedHistory.today.length > 0 && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        color: currentTheme.accent,
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        marginBottom: '10px',
+                        paddingLeft: '5px'
+                      }}>
+                        📅 Today
+                      </div>
+                      {groupedHistory.today.map((entry, i) => (
+                        <button 
+                          key={`today-${i}`} 
+                          onClick={() => loadChatFromHistory(entry.messages)}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '14px',
+                            margin: '8px 0',
+                            backgroundColor: currentTheme.cardBg,
+                            border: `1px solid ${currentTheme.border}`,
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.3s',
+                            color: currentTheme.text
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = currentTheme.hoverBg;
+                            e.target.style.borderColor = currentTheme.accent;
+                            e.target.style.transform = 'translateX(5px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = currentTheme.cardBg;
+                            e.target.style.borderColor = currentTheme.border;
+                            e.target.style.transform = 'translateX(0)';
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '16px' }}>
+                              {entry.emotion?.toLowerCase() === 'happy' ? '😊' : 
+                               entry.emotion?.toLowerCase() === 'sad' ? '😢' :
+                               entry.emotion?.toLowerCase() === 'angry' ? '😠' :
+                               entry.emotion?.toLowerCase() === 'surprise' ? '😲' : '😐'}
+                            </span>
+                            <strong style={{ color: currentTheme.text, flex: 1 }}>
+                              {entry.emotion ? capitalize(entry.emotion) : 'Chat'}
+                            </strong>
+                          </div>
+                          <small style={{ color: currentTheme.textMuted, display: 'block', marginTop: '5px' }}>
+                            {formatTimestamp(entry.timestamp)}
+                          </small>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Yesterday */}
+                  {groupedHistory.yesterday.length > 0 && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        color: currentTheme.accent,
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        marginBottom: '10px',
+                        paddingLeft: '5px'
+                      }}>
+                        📅 Yesterday
+                      </div>
+                      {groupedHistory.yesterday.map((entry, i) => (
+                        <button 
+                          key={`yesterday-${i}`} 
+                          onClick={() => loadChatFromHistory(entry.messages)}
+                          style={{
+                            display: 'block',
+                            width: '100%',
+                            padding: '14px',
+                            margin: '8px 0',
+                            backgroundColor: currentTheme.cardBg,
+                            border: `1px solid ${currentTheme.border}`,
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.3s',
+                            color: currentTheme.text
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = currentTheme.hoverBg;
+                            e.target.style.borderColor = currentTheme.accent;
+                            e.target.style.transform = 'translateX(5px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = currentTheme.cardBg;
+                            e.target.style.borderColor = currentTheme.border;
+                            e.target.style.transform = 'translateX(0)';
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '16px' }}>
+                              {entry.emotion?.toLowerCase() === 'happy' ? '😊' : 
+                               entry.emotion?.toLowerCase() === 'sad' ? '😢' :
+                               entry.emotion?.toLowerCase() === 'angry' ? '😠' :
+                               entry.emotion?.toLowerCase() === 'surprise' ? '😲' : '😐'}
+                            </span>
+                            <strong style={{ color: currentTheme.text, flex: 1 }}>
+                              {entry.emotion ? capitalize(entry.emotion) : 'Chat'}
+                            </strong>
+                          </div>
+                          <small style={{ color: currentTheme.textMuted, display: 'block', marginTop: '5px' }}>
+                            {formatTimestamp(entry.timestamp)}
+                          </small>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Earlier */}
+                  {groupedHistory.earlier.length > 0 && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        color: currentTheme.accent,
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        marginBottom: '10px',
+                        paddingLeft: '5px'
+                      }}>
+                        📅 Earlier
+                      </div>
+                      {groupedHistory.earlier.map((entry, i) => {
+                        const entryDate = new Date(entry.timestamp);
+                        return (
+                          <button 
+                            key={`earlier-${i}`} 
+                            onClick={() => loadChatFromHistory(entry.messages)}
+                            style={{
+                              display: 'block',
+                              width: '100%',
+                              padding: '14px',
+                              margin: '8px 0',
+                              backgroundColor: currentTheme.cardBg,
+                              border: `1px solid ${currentTheme.border}`,
+                              borderRadius: '10px',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              transition: 'all 0.3s',
+                              color: currentTheme.text
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = currentTheme.hoverBg;
+                              e.target.style.borderColor = currentTheme.accent;
+                              e.target.style.transform = 'translateX(5px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = currentTheme.cardBg;
+                              e.target.style.borderColor = currentTheme.border;
+                              e.target.style.transform = 'translateX(0)';
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '16px' }}>
+                                {entry.emotion?.toLowerCase() === 'happy' ? '😊' : 
+                                 entry.emotion?.toLowerCase() === 'sad' ? '😢' :
+                                 entry.emotion?.toLowerCase() === 'angry' ? '😠' :
+                                 entry.emotion?.toLowerCase() === 'surprise' ? '😲' : '😐'}
+                              </span>
+                              <strong style={{ color: currentTheme.text, flex: 1 }}>
+                                {entry.emotion ? capitalize(entry.emotion) : 'Chat'}
+                              </strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '5px' }}>
+                              <small style={{ color: currentTheme.textMuted }}>
+                                {formatGroupDate(entryDate)}
+                              </small>
+                              <small style={{ color: currentTheme.textMuted }}>
+                                {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </small>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </>
         )}
       </div>
 
-      {/* Main Chat Area */}
+      {/* Main Chat Area - Theme based */}
       <div style={{ 
         flex: 1, 
         padding: '20px', 
         display: 'flex', 
         flexDirection: 'column',
-        backgroundColor: '#ffffff'
+        background: currentTheme.background
       }}>
         {/* Header with Logo */}
         <div style={{
@@ -1141,45 +1455,52 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
           alignItems: 'center',
           justifyContent: 'space-between',
           marginBottom: '20px',
-          borderBottom: '2px solid #4CAF50',
-          paddingBottom: '10px'
+          borderBottom: `2px solid ${currentTheme.accent}`,
+          paddingBottom: '15px',
+          background: currentTheme.cardBg,
+          padding: '15px 25px',
+          borderRadius: '15px',
+          boxShadow: currentTheme.shadow,
+          border: `1px solid ${currentTheme.border}`
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <img 
               src={emocareLogo} 
               alt="Emocare Logo" 
               style={{ 
-                width: '40px', 
-                height: '40px',
-                objectFit: 'contain'
+                width: '45px', 
+                height: '45px',
+                objectFit: 'contain',
+                filter: isDarkMode ? 'brightness(1.2)' : 'none'
               }} 
             />
             <span style={{
-              fontSize: '20px',
+              fontSize: '22px',
               fontWeight: 'bold',
-              color: '#4CAF50'
+              color: currentTheme.accent
             }}>
-              Emocare
+               Hello {user?.name} 💙
             </span>
           </div>
           <h2 style={{ 
-            color: '#2c3e50',
+            color: currentTheme.text,
             fontSize: '1.5rem',
             margin: 0
           }}>
-            Hello {user?.name} 💙
+           
           </h2>
         </div>
         
-        {/* Messages Container */}
+        {/* Messages Container - Theme based */}
         <div style={{ 
           flex: 1,
           overflowY: 'auto', 
-          padding: '20px',
+          padding: '25px',
           marginBottom: '20px',
-          backgroundColor: '#f9f9f9',
-          borderRadius: '10px',
-          border: '1px solid #e0e0e0'
+          background: currentTheme.cardBg,
+          borderRadius: '15px',
+          border: `1px solid ${currentTheme.border}`,
+          boxShadow: currentTheme.shadow
         }}>
           {messages.map((msg, i) => (
             <div 
@@ -1196,12 +1517,14 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
                 maxWidth: '80%',
                 padding: msg.role === 'user' ? '12px 18px' : '20px 25px',
                 borderRadius: msg.role === 'user' ? '20px 20px 5px 20px' : '20px 20px 20px 5px',
-                backgroundColor: msg.role === 'user' ? '#4CAF50' : '#ffffff',
-                color: msg.role === 'user' ? 'white' : '#2c3e50',
+                background: msg.role === 'user' 
+                  ? currentTheme.userMessage
+                  : currentTheme.assistantMessage,
+                color: msg.role === 'user' ? currentTheme.userMessageText : currentTheme.text,
                 boxShadow: msg.role === 'user' 
-                  ? '0 2px 5px rgba(76, 175, 80, 0.3)' 
-                  : '0 3px 10px rgba(0,0,0,0.1)',
-                border: msg.role === 'user' ? 'none' : '1px solid #e0e0e0',
+                  ? `0 4px 15px ${isDarkMode ? 'rgba(187, 134, 252, 0.3)' : 'rgba(108, 92, 231, 0.3)'}` 
+                  : currentTheme.shadow,
+                border: msg.role === 'user' ? 'none' : `1px solid ${currentTheme.border}`,
                 width: msg.role === 'assistant' ? '100%' : 'auto'
               }}>
                 {/* Sender Name with Avatar */}
@@ -1211,13 +1534,13 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
                   gap: '8px',
                   marginBottom: '12px',
                   paddingBottom: '8px',
-                  borderBottom: msg.role === 'assistant' ? '1px solid #e0e0e0' : 'none'
+                  borderBottom: msg.role === 'assistant' ? `1px solid ${currentTheme.border}` : 'none'
                 }}>
                   <span style={{
                     width: '30px',
                     height: '30px',
                     borderRadius: '50%',
-                    backgroundColor: msg.role === 'user' ? 'rgba(255,255,255,0.2)' : '#e8f5e9',
+                    background: msg.role === 'user' ? 'rgba(18,18,18,0.2)' : (isDarkMode ? '#404040' : '#f0f3ff'),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1228,7 +1551,7 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
                   <span style={{
                     fontWeight: 'bold',
                     fontSize: '15px',
-                    color: msg.role === 'user' ? 'white' : '#4CAF50'
+                    color: msg.role === 'user' ? currentTheme.userMessageText : currentTheme.accent
                   }}>
                     {msg.role === 'user' ? 'You' : 'Emocare'}
                   </span>
@@ -1236,7 +1559,7 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
                     fontSize: '11px',
                     marginLeft: 'auto',
                     opacity: 0.6,
-                    color: msg.role === 'user' ? 'rgba(255,255,255,0.7)' : '#95a5a6'
+                    color: msg.role === 'user' ? currentTheme.userMessageText : currentTheme.textMuted
                   }}>
                     {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
@@ -1246,7 +1569,7 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
                 <div style={{
                   fontSize: '15px',
                   lineHeight: '1.6',
-                  color: msg.role === 'user' ? 'white' : '#2c3e50'
+                  color: msg.role === 'user' ? currentTheme.userMessageText : (isDarkMode ? '#E0E0E0' : '#2d3436')
                 }}>
                   {msg.role === 'assistant' ? (
                     formatMessageContent(msg.content, true)
@@ -1260,7 +1583,7 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
           {loading && (
             <div style={{ 
               textAlign: 'center', 
-              color: '#7f8c8d',
+              color: currentTheme.accent,
               padding: '20px'
             }}>
               <div className="typing-indicator">
@@ -1277,7 +1600,7 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
         {/* Emotion Buttons */}
         <h4 style={{ 
           marginBottom: '10px', 
-          color: '#2c3e50',
+          color: currentTheme.text,
           fontSize: '1rem'
         }}>
           How are you feeling today?
@@ -1295,25 +1618,34 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
               onClick={() => handleEmotionClick(emo.name.toLowerCase())}
               style={{
                 padding: '12px 20px',
-                backgroundColor: selectedEmotion === emo.name.toLowerCase() ? emo.color : '#f0f0f0',
-                border: 'none',
-                borderRadius: '30px',
+                background: selectedEmotion === emo.name.toLowerCase() 
+                  ? `linear-gradient(135deg, ${emo.color} 0%, ${emo.color}dd 100%)`
+                  : currentTheme.cardBg,
+                border: selectedEmotion === emo.name.toLowerCase() 
+                  ? 'none' 
+                  : `2px solid ${currentTheme.border}`,
+                borderRadius: '40px',
                 cursor: 'pointer',
                 fontSize: '15px',
                 fontWeight: selectedEmotion === emo.name.toLowerCase() ? 'bold' : '500',
                 transition: 'all 0.3s',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                color: selectedEmotion === emo.name.toLowerCase() ? 'white' : '#2c3e50',
-                minWidth: '100px'
+                boxShadow: selectedEmotion === emo.name.toLowerCase() 
+                  ? `0 4px 15px ${emo.color}80` 
+                  : currentTheme.shadow,
+                color: selectedEmotion === emo.name.toLowerCase() ? '#121212' : currentTheme.text,
+                minWidth: '100px',
+                transform: selectedEmotion === emo.name.toLowerCase() ? 'scale(1.05)' : 'scale(1)'
               }}
               onMouseEnter={(e) => {
                 if (selectedEmotion !== emo.name.toLowerCase()) {
-                  e.target.style.backgroundColor = '#e0e0e0';
+                  e.target.style.background = currentTheme.hoverBg;
+                  e.target.style.borderColor = emo.color;
                 }
               }}
               onMouseLeave={(e) => {
                 if (selectedEmotion !== emo.name.toLowerCase()) {
-                  e.target.style.backgroundColor = '#f0f0f0';
+                  e.target.style.background = currentTheme.cardBg;
+                  e.target.style.borderColor = currentTheme.border;
                 }
               }}
             >
@@ -1326,7 +1658,7 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
         {/* Suggestions */}
         {showSuggestions && suggestions.length > 0 && (
           <div style={{ marginBottom: '15px' }}>
-            <p style={{ color: '#7f8c8d', fontSize: '13px', marginBottom: '8px' }}>
+            <p style={{ color: currentTheme.textMuted, fontSize: '13px', marginBottom: '8px' }}>
               You might also want to know:
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -1335,17 +1667,27 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
                   key={i}
                   onClick={() => handleSuggestionClick(suggestion)}
                   style={{
-                    padding: '8px 12px',
-                    backgroundColor: '#e8f5e9',
-                    border: '1px solid #4CAF50',
-                    borderRadius: '15px',
+                    padding: '10px 16px',
+                    background: currentTheme.cardBg,
+                    border: `2px solid ${currentTheme.accent}`,
+                    borderRadius: '25px',
                     cursor: 'pointer',
-                    fontSize: '12px',
-                    color: '#2c3e50',
-                    transition: 'all 0.3s'
+                    fontSize: '13px',
+                    color: currentTheme.text,
+                    fontWeight: '500',
+                    transition: 'all 0.3s',
+                    boxShadow: `0 2px 8px ${isDarkMode ? 'rgba(187, 134, 252, 0.2)' : 'rgba(108, 92, 231, 0.2)'}`
                   }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#c8e6c9'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#e8f5e9'}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = currentTheme.accent;
+                    e.target.style.color = isDarkMode ? '#121212' : 'white';
+                    e.target.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = currentTheme.cardBg;
+                    e.target.style.color = currentTheme.text;
+                    e.target.style.transform = 'translateY(0)';
+                  }}
                 >
                   {suggestion}
                 </button>
@@ -1363,39 +1705,55 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
             placeholder="Type your message here... (e.g., I feel sad, What is diabetes?)"
             style={{
               flex: 1,
-              padding: '15px',
-              border: '2px solid #e0e0e0',
-              borderRadius: '25px',
-              fontSize: '14px',
+              padding: '16px 20px',
+              border: `2px solid ${currentTheme.inputBorder}`,
+              borderRadius: '30px',
+              fontSize: '15px',
               outline: 'none',
-              transition: 'border 0.3s'
+              transition: 'all 0.3s',
+              background: currentTheme.inputBg,
+              color: currentTheme.text,
+              boxShadow: currentTheme.shadow
             }}
-            onFocus={(e) => e.target.style.borderColor = '#4CAF50'}
-            onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+            onFocus={(e) => {
+              e.target.style.borderColor = currentTheme.inputFocusBorder;
+              e.target.style.boxShadow = `0 4px 15px ${isDarkMode ? 'rgba(187, 134, 252, 0.2)' : 'rgba(108, 92, 231, 0.2)'}`;
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = currentTheme.inputBorder;
+              e.target.style.boxShadow = currentTheme.shadow;
+            }}
           />
           <button
             type="submit"
             disabled={loading || !userInput.trim()}
             style={{
-              padding: '15px 30px',
-              backgroundColor: loading || !userInput.trim() ? '#b0bec5' : '#4CAF50',
-              color: 'white',
+              padding: '16px 35px',
+              background: loading || !userInput.trim() 
+                ? currentTheme.border
+                : currentTheme.buttonNewChat,
+              color: loading || !userInput.trim() ? currentTheme.textMuted : (isDarkMode ? '#121212' : 'white'),
               border: 'none',
-              borderRadius: '25px',
+              borderRadius: '30px',
               cursor: loading || !userInput.trim() ? 'not-allowed' : 'pointer',
               opacity: loading || !userInput.trim() ? 0.6 : 1,
-              fontSize: '14px',
+              fontSize: '15px',
               fontWeight: 'bold',
-              transition: 'background 0.3s'
+              boxShadow: loading || !userInput.trim() 
+                ? 'none' 
+                : currentTheme.shadow,
+              transition: 'all 0.3s'
             }}
             onMouseEnter={(e) => {
               if (!loading && userInput.trim()) {
-                e.target.style.backgroundColor = '#45a049';
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = isDarkMode ? '0 6px 20px rgba(187, 134, 252, 0.5)' : '0 6px 20px rgba(108, 92, 231, 0.3)';
               }
             }}
             onMouseLeave={(e) => {
               if (!loading && userInput.trim()) {
-                e.target.style.backgroundColor = '#4CAF50';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = currentTheme.shadow;
               }
             }}
           >
@@ -1430,12 +1788,12 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
         
         .typing-indicator span {
           display: inline-block;
-          width: 8px;
-          height: 8px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
-          background-color: #4CAF50;
-          margin: 0 2px;
-          animation: typing 1s infinite;
+          background: ${currentTheme.accent};
+          margin: 0 3px;
+          animation: typing 1.4s infinite;
         }
         
         .typing-indicator span:nth-child(2) {
@@ -1447,8 +1805,14 @@ ${data.personalized_recommendations.map(r => `• ${r.text}`).join('\n')}
         }
         
         @keyframes typing {
-          0%, 60%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-10px); }
+          0%, 60%, 100% { 
+            transform: translateY(0);
+            opacity: 0.6;
+          }
+          30% { 
+            transform: translateY(-12px);
+            opacity: 1;
+          }
         }
       `}</style>
     </div>

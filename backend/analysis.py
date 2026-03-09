@@ -1,12 +1,11 @@
 # backend/analysis.py
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import Counter
-import re
 
 def analyze_user_data(user, chat_history):
     """
     Analyze user's chat history and profile to generate professional insights
-    Only includes emotion check-ins and personalized recommendations
+    Only includes emotion check-ins (from emotion buttons) and personalized recommendations
     """
     
     # Extract user profile
@@ -20,9 +19,8 @@ def analyze_user_data(user, chat_history):
         "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M")
     }
     
-    # Track ONLY emotion-related chats (when user selects emotions)
+    # Track ONLY emotion-related chats (when user selects emotions from buttons)
     emotion_log = []
-    emotion_dates = []
     
     # Personalized recommendations based on user profile
     personalized_recommendations = []
@@ -30,22 +28,23 @@ def analyze_user_data(user, chat_history):
     # Generate recommendations based on hobbies and habits
     if profile['hobbies']:
         for hobby in profile['hobbies']:
-            if 'garden' in hobby.lower():
+            hobby_lower = hobby.lower()
+            if 'garden' in hobby_lower:
                 personalized_recommendations.append({
                     'category': 'hobby',
                     'text': f"Based on your love for {hobby}, spending 15-20 minutes in your garden can significantly improve your mood. The combination of sunlight, fresh air, and nurturing plants is naturally therapeutic."
                 })
-            elif 'read' in hobby.lower():
+            elif 'read' in hobby_lower:
                 personalized_recommendations.append({
                     'category': 'hobby',
                     'text': f"Since you enjoy {hobby}, consider joining a local library or book club. Reading for 30 minutes daily can reduce stress by up to 68%."
                 })
-            elif 'music' in hobby.lower():
+            elif 'music' in hobby_lower:
                 personalized_recommendations.append({
                     'category': 'hobby',
                     'text': f"Your interest in {hobby} is wonderful! Listening to your favorite music for 20 minutes can release dopamine and improve emotional well-being."
                 })
-            elif 'walk' in hobby.lower() or 'exercise' in hobby.lower():
+            elif 'walk' in hobby_lower or 'exercise' in hobby_lower:
                 personalized_recommendations.append({
                     'category': 'habit',
                     'text': f"Continuing your {hobby} routine is excellent. A gentle 15-minute walk daily can boost mood and improve cardiovascular health."
@@ -53,52 +52,78 @@ def analyze_user_data(user, chat_history):
     
     if profile['habits']:
         for habit in profile['habits']:
-            if 'tea' in habit.lower():
+            habit_lower = habit.lower()
+            if 'tea' in habit_lower:
                 personalized_recommendations.append({
                     'category': 'habit',
                     'text': f"Your habit of {habit} can be a mindful moment. Try having your tea without distractions, focusing on the warmth and aroma for relaxation."
                 })
-            elif 'morning' in habit.lower():
+            elif 'morning' in habit_lower:
                 personalized_recommendations.append({
                     'category': 'habit',
                     'text': f"Your {habit} routine is valuable. Morning sunlight exposure helps regulate circadian rhythm and vitamin D levels."
                 })
     
     # Add general health recommendations based on medical conditions
-    if 'diabetes' in str(profile['medical']).lower():
+    medical_str = str(profile['medical']).lower()
+    if 'diabetes' in medical_str:
         personalized_recommendations.append({
             'category': 'health',
             'text': "For diabetes management, maintaining regular meal times and monitoring blood sugar levels is crucial. Your morning walks are particularly beneficial."
         })
-    if 'bp' in str(profile['medical']).lower() or 'blood pressure' in str(profile['medical']).lower():
+    if 'bp' in medical_str or 'blood pressure' in medical_str:
         personalized_recommendations.append({
             'category': 'health',
             'text': "To help manage blood pressure, reducing salt intake and practicing deep breathing for 5 minutes daily can make a significant difference."
         })
     
-    # Collect emotion check-ins from chat history
-    emotion_keywords = ["sad", "lonely", "anxious", "angry", "tired", "depressed", "hopeless", "happy", "calm"]
+    # EMOTION KEYWORDS ONLY - No general queries
+    emotion_keywords = ["sad", "lonely", "anxious", "angry", "tired", "depressed", "hopeless", "happy", "calm", "neutral", "surprise"]
+    
+    print(f"\n📊 Analyzing {len(chat_history)} chat history items")
+    emotion_count = 0
     
     for chat in chat_history:
         emotion = chat.get('emotion', '').lower()
         timestamp = chat.get('timestamp', '')
         
+        # Only include if it's a valid emotion (from buttons)
         if emotion in emotion_keywords:
+            emotion_count += 1
+            print(f"  ✓ Emotion found: {emotion} at {timestamp}")
+            
             # Format date nicely
             if timestamp:
                 try:
-                    date_obj = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                    formatted_date = date_obj.strftime("%b %d, %Y")
-                except:
+                    # Try to parse the timestamp
+                    if isinstance(timestamp, str):
+                        # Handle ISO format
+                        date_obj = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                        formatted_date = date_obj.strftime("%b %d, %Y")
+                        # For last active, we'll use this format
+                        last_active_raw = date_obj
+                    else:
+                        # Handle datetime object
+                        formatted_date = timestamp.strftime("%b %d, %Y")
+                        last_active_raw = timestamp
+                except Exception as e:
+                    print(f"Date parsing error: {e}")
                     formatted_date = str(timestamp)[:10]
+                    last_active_raw = datetime.now()
             else:
-                formatted_date = "Unknown"
+                formatted_date = datetime.now().strftime("%b %d, %Y")
+                last_active_raw = datetime.now()
             
             emotion_log.append({
                 'emotion': emotion.capitalize(),
-                'date': formatted_date
+                'date': formatted_date,
+                'raw_timestamp': last_active_raw
             })
-            emotion_dates.append(formatted_date)
+    
+    print(f"✅ Total valid emotions found: {emotion_count}")
+    
+    # Sort by timestamp (most recent first)
+    emotion_log.sort(key=lambda x: x.get('raw_timestamp', datetime.now()), reverse=True)
     
     # Count emotions
     emotion_counts = Counter([e['emotion'] for e in emotion_log])
@@ -115,7 +140,9 @@ def analyze_user_data(user, chat_history):
         'Depressed': '#9575CD',
         'Hopeless': '#F06292',
         'Happy': '#4CAF50',
-        'Calm': '#66BB6A'
+        'Calm': '#66BB6A',
+        'Neutral': '#9E9E9E',
+        'Surprise': '#FFB74D'
     }
     
     for emotion, count in emotion_counts.items():
@@ -129,10 +156,42 @@ def analyze_user_data(user, chat_history):
     # Sort chart data by percentage
     sorted_chart = dict(sorted(chart_data.items(), key=lambda x: x[1]['percentage'], reverse=True))
     
+    # Calculate emotional wellness (percentage of positive emotions)
+    positive_emotions = ['Happy', 'Calm']
+    positive_count = sum([emotion_counts.get(e, 0) for e in positive_emotions])
+    wellness_percentage = round((positive_count / total_emotions) * 100) if total_emotions > 0 else 0
+    
+    # Calculate engagement level
+    if total_emotions > 20:
+        engagement = "High"
+    elif total_emotions > 10:
+        engagement = "Medium"
+    else:
+        engagement = "Moderate"
+    
+    # Get last active date (most recent emotion)
+    if emotion_log:
+        last_active_obj = emotion_log[0].get('raw_timestamp')
+        if isinstance(last_active_obj, datetime):
+            last_active = last_active_obj.strftime("%b %d, %Y")
+        else:
+            last_active = emotion_log[0]['date']
+    else:
+        last_active = "No data"
+    
+    # Create clinical observations text
+    clinical_observations = f"Patient {profile['name']} has completed {total_emotions} emotional wellness sessions. "
+    if profile['medical']:
+        clinical_observations += f"Medical history includes {', '.join(profile['medical'])}. "
+    if profile['habits']:
+        clinical_observations += f"Daily routine includes {', '.join(profile['habits'])}. "
+    if profile['hobbies']:
+        clinical_observations += f"Shows interest in {', '.join(profile['hobbies'])}."
+    
     # Generate professional summary
     summary = f"""
 ╔══════════════════════════════════════════════════════════════╗
-║                    EMOCARE ANALYSIS REPORT                    ║
+║                    EMOCARE HEALTH SUMMARY                     ║
 ║                    Generated: {profile['analysis_date']}                  ║
 ╠══════════════════════════════════════════════════════════════╣
 ║ PATIENT: {profile['name'][:20]:<20} AGE: {profile['age']:<3}                         ║
@@ -168,8 +227,12 @@ Report generated for healthcare provider reference only.
         "emotional_stats": {
             "total_checkins": total_emotions,
             "chart_data": sorted_chart,
-            "recent_checkins": emotion_log[-10:]  # Last 10 check-ins
+            "recent_checkins": emotion_log[:10],  # Last 10 check-ins
+            "wellness_percentage": wellness_percentage,
+            "engagement_level": engagement,
+            "last_active": last_active
         },
-        "personalized_recommendations": personalized_recommendations[:5],  # Top 5 recommendations
+        "clinical_observations": clinical_observations,
+        "personalized_recommendations": personalized_recommendations[:5],
         "summary": summary
     }
